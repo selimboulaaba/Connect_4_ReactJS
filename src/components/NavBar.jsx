@@ -10,13 +10,15 @@ function Navbar() {
     return (
         <nav className="sticky top-0 z-10 space-x-2">
             <Link to="/"><button>Home</button></Link>
+            <Link to="/online"><button>Play an Online Game</button></Link>
             <Link to="/local"><button>Play a Local Game</button></Link>
             {user.signedIn
                 ? <>
                     <button>{user.user.username}</button>
                     <button onClick={() => dispatch(signOut())}>Sign Out</button>
                 </>
-                : <Link to="/signin"><button>Login</button></Link>}
+                : <Link to="/signin"><button>Sign In</button></Link>
+            }
         </nav>
     )
 }
