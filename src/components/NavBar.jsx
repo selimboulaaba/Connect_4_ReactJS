@@ -8,14 +8,14 @@ function Navbar() {
     const dispatch = useDispatch();
 
     return (
-        <nav className="sticky top-0 z-10 space-x-2">
+        <nav className="flex sticky top-0 z-10 space-x-2">
             <Link to="/"><button>Home</button></Link>
-            <Link to="/online"><button>Play an Online Game</button></Link>
+            <Link to={user.signedIn ? "/online" : "/signin"}><button>Play an Online Game</button></Link>
             <Link to="/local"><button>Play a Local Game</button></Link>
             {user.signedIn
                 ? <>
-                    <button>{user.user.username}</button>
-                    <button onClick={() => dispatch(signOut())}>Sign Out</button>
+                    <div className='text-[#646cff] rounded-lg border border-transparent px-4 py-2 text-base font-medium bg-[#1a1a1a] transition-colors duration-200'>{user.user.username}</div>
+                    <Link to="/"><button onClick={() => dispatch(signOut())}>Sign Out</button></Link>
                 </>
                 : <Link to="/signin"><button>Sign In</button></Link>
             }

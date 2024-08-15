@@ -31,7 +31,7 @@ function LocalGame() {
     return (pos)
   }
 
-  const handleClick = (rowIndex, colIndex) => {
+  const handleClick = (colIndex) => {
     const pos = getDownPos(colIndex);
     if ((p1.indexOf(pos) === -1) && (p2.indexOf(pos) === -1)) {
       if (p1.length === p2.length) {
@@ -99,7 +99,7 @@ function LocalGame() {
             <div
               key={rowIndex * columns + colIndex}
               className={color(rowIndex.toString() + colIndex.toString()) + ` w-12 h-12 m-1 rounded-full border-4 ${winner ? '' : 'cursor-pointer'}`}
-              onClick={() => winner ? null : handleClick(rowIndex, colIndex)}
+              onClick={() => winner ? null : handleClick(colIndex)}
             >
             </div>
           ))}

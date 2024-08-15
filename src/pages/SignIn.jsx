@@ -46,7 +46,8 @@ function SignIn() {
 
     return (
         <form>
-            <div className="grid gap-6 mb-6 mt-32">
+            <div className="grid gap-6 mb-6 mt-12">
+                <h1 className='font-bold text-[#646cff] mb-10'>Sign In</h1>
                 {alert && <Alert message={alert} />}
                 <div>
                     <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Username</label>

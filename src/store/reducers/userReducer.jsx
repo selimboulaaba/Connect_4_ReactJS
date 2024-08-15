@@ -4,7 +4,6 @@ const initialState = {
   user: {},
   signedIn: false,
   token: localStorage.getItem('token'),
-  loading: false,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -16,7 +15,6 @@ const userReducer = (state = initialState, action) => {
         user: action.payload.user,
         token: action.payload.token,
         signedIn: true,
-        loading: false,
       };
     case SIGN_OUT:
       localStorage.removeItem('token');
@@ -25,14 +23,12 @@ const userReducer = (state = initialState, action) => {
         user: {},
         token: null,
         signedIn: false,
-        loading: false,
       };
     case SET_USER:
       return {
         ...state,
         user: action.payload,
         signedIn: true,
-        loading: false,
       };
     default:
       return state;
