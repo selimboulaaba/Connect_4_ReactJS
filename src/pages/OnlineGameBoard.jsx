@@ -110,7 +110,6 @@ function OnlineGameBoard() {
           })
           const list = game.p1_Moves
           list.push(pos)
-          console.log(list)
           check(list, true)
         }
       } else {
@@ -127,7 +126,6 @@ function OnlineGameBoard() {
           })
           const list = game.p2_Moves
           list.push(pos)
-          console.log(list)
           check(list, true)
         }
       }
