@@ -91,8 +91,8 @@ function LocalGame() {
   }, [p1, p2])
 
   return (
-    <>
-      <button className='mt-28 mb-5' onClick={reset}>Reset</button>
+    <div className='border-[#646cff] border-[1px] rounded-xl pb-20 px-20 mt-14'>
+      <button className='mb-20 mt-10' onClick={reset}>Reset</button>
       {[...Array(rows)].map((_, rowIndex) => (
         <div key={rowIndex} className='flex justify-center items-center'>
           {[...Array(columns)].map((_, colIndex) => (
@@ -106,7 +106,7 @@ function LocalGame() {
         </div>
       ))}
       {winner && <Winner winner={winner} />}
-    </>
+    </div>
   )
 }
 

@@ -42,7 +42,8 @@ function Signup() {
 
     return (
         <>
-            <div className="grid gap-6 mb-6 mt-32">
+            <div className="grid gap-6 mb-6 mt-12 border-[#646cff] border-[1px] rounded-xl p-20">
+            <h1 className='font-bold text-[#646cff] mb-10'>Sign Up</h1>
                 {alert && <Alert message={alert} />}
                 <div>
                     <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Username</label>

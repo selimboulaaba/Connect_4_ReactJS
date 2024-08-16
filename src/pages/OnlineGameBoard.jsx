@@ -34,12 +34,13 @@ function OnlineGameBoard() {
           setLoading(false)
         })
     }
-  }, [])
+  }, [id])
 
   useEffect(() => {
-    check(game.p1_Moves, false)
-    check(game.p2_Moves, false)
-  }, [game._id])
+    setWinner(null)
+    check(game.p1_Moves, false, null)
+    check(game.p2_Moves, false, null)
+  }, [game])
 
   const rows = 6
   const columns = 7
@@ -51,32 +52,21 @@ function OnlineGameBoard() {
   ]
 
   const next = () => {
+    updateTurn({
+      next: true,
+      username: username === game.p1.username ? game.p2.username : game.p1.username
+    })
     setGame((prevGame) => ({
       ...prevGame,
       p1_Moves: [],
       p2_Moves: [],
     }));
     setWinner(null)
-    updateTurn({
-      next: true,
-    })
   }
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(id)
   }
-
-  useEffect(() => {
-    const socket = io(import.meta.env.VITE_API_URL);
-
-    socket.on('messageFromServer', (data) => {
-      console.log(data.message);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
 
   const getDownPos = (colIndex) => {
     let pos = "5" + colIndex;
@@ -96,37 +86,41 @@ function OnlineGameBoard() {
   const handleClick = (colIndex) => {
     const pos = getDownPos(colIndex);
     if ((game.p1_Moves.indexOf(pos) === -1) && (game.p2_Moves.indexOf(pos) === -1)) {
-      if (game.p1_Moves.length === game.p2_Moves.length) {
+      if (game.p1_Moves.length <= game.p2_Moves.length) {
         if (game.p1.username === username) {
-          setGame((prevGame) => ({
-            ...prevGame,
-            p1_Moves: [...prevGame.p1_Moves, pos],
-          }));
-          updateTurn({
-            next: false,
-            score: false,
-            p1: true,
-            value: pos
-          })
           const list = game.p1_Moves
           list.push(pos)
-          check(list, true)
+          if (!check(list, true, pos)) {
+            setGame((prevGame) => ({
+              ...prevGame,
+              p1_Moves: [...prevGame.p1_Moves, pos],
+            }));
+            updateTurn({
+              next: false,
+              score: false,
+              p1: true,
+              value: pos,
+              username: game.p2.username
+            })
+          }
         }
       } else {
         if (game.p2.username === username) {
-          setGame((prevGame) => ({
-            ...prevGame,
-            p2_Moves: [...prevGame.p2_Moves, pos],
-          }));
-          updateTurn({
-            next: false,
-            score: false,
-            p1: false,
-            value: pos
-          })
           const list = game.p2_Moves
           list.push(pos)
-          check(list, true)
+          if (!check(list, true, pos)) {
+            setGame((prevGame) => ({
+              ...prevGame,
+              p2_Moves: [...prevGame.p2_Moves, pos],
+            }));
+            updateTurn({
+              next: false,
+              score: false,
+              p1: false,
+              value: pos,
+              username: game.p1.username
+            })
+          }
         }
       }
     }
@@ -142,7 +136,7 @@ function OnlineGameBoard() {
     }
   }
 
-  const checkWinner = (i, j, list, update) => {
+  const checkWinner = (i, j, list, update, pos) => {
     if (list.indexOf(i + "" + j) !== -1) {
       for (const [dx, dy] of directions) {
         let count = 1;
@@ -162,12 +156,15 @@ function OnlineGameBoard() {
                   score: {
                     ...prevGame.score,
                     p2: prevGame.score.p2 + 1,
+                    p2_Moves: [...prevGame.p2_Moves, pos],
                   },
                 }));
                 updateTurn({
                   next: false,
                   score: true,
                   p1: false,
+                  value: pos,
+                  username: username === game.p1.username ? game.p2.username : game.p1.username
                 })
               }
             } else {
@@ -178,33 +175,60 @@ function OnlineGameBoard() {
                   score: {
                     ...prevGame.score,
                     p1: prevGame.score.p1 + 1,
+                    p1_Moves: [...prevGame.p1_Moves, pos],
                   },
                 }));
                 updateTurn({
                   next: false,
                   score: true,
                   p1: true,
+                  value: pos,
+                  username: username === game.p1.username ? game.p2.username : game.p1.username
                 })
               }
             }
+            return true;
           }
         }
       }
     }
   }
 
-  const check = (list, update) => {
+  const check = (list, update, pos) => {
+    let res = false;
     for (let i = 0; i < 6; i++) {
       for (let j = 0; j < 7; j++) {
-        checkWinner(i, j, list, update)
+        res = res || checkWinner(i, j, list, update, pos)
       }
     }
+    return res;
   }
 
+  const socket = io(import.meta.env.VITE_API_URL)
+  useEffect(() => {
+    socket.on('connect', () => {
+      if (username) {
+        socket.emit('register', username);
+      }
+    });
+
+    socket.on('newMove', (data) => {
+      setGame(data.newGame);
+    });
+
+    socket.on('gameJoined', (data) => {
+      setGame(data.newGame);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [socket]);
+
   return (
-    <div className="mt-5">
+    <div className="border-[#646cff] border-[1px] rounded-xl pb-20 pt-4 px-20 mt-14">
       {loading
-        ? <Loading className="mt-14" />
+        ? <Loading className="pt-28 pb-12" />
         : <>
           {username === game.p1.username && <div onClick={copyToClipboard} className='flex items-center ms-auto justify-end cursor-pointer hover:border-2 w-fit hover:rounded-lg hover:border-[#646cff] text-[#646cff] p-3'>Copy this and send to your Friend <FaRegCopy className='ms-3 w-6 h-6 fill-[#646cff]' /></div>}
           {game.p2
@@ -223,6 +247,11 @@ function OnlineGameBoard() {
                   ))}
                 </div>
               ))}
+              <div>Your {
+              (game.p1_Moves.length <= game.p2_Moves.length && username === game.p1.username)
+              ||
+              (game.p1_Moves.length > game.p2_Moves.length && username === game.p2.username)
+               ? "" : "Opponent's"} Turn</div>
             </>
             : <div className="text-[#646cff] font-bold text-5xl mt-14 mb-10">Waiting for Player 2</div>
           }

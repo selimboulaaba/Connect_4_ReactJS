@@ -46,7 +46,7 @@ function SignIn() {
 
     return (
         <form>
-            <div className="grid gap-6 mb-6 mt-12">
+            <div className="grid gap-6 mb-6 mt-12 border-[#646cff] border-[1px] rounded-xl p-20">
                 <h1 className='font-bold text-[#646cff] mb-10'>Sign In</h1>
                 {alert && <Alert message={alert} />}
                 <div>
@@ -56,7 +56,7 @@ function SignIn() {
                         id="username"
                         value={user.username}
                         onChange={(event) => handleChange("username", event)}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        className="text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                         placeholder="Username *"
                     />
                 </div>
@@ -67,7 +67,7 @@ function SignIn() {
                         id="password"
                         value={user.password}
                         onChange={(event) => handleChange("password", event)}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        className="text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                         placeholder="Password *"
                     />
                 </div>
