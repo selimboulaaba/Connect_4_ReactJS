@@ -13,6 +13,7 @@ import OnlineMenu from './pages/OnlineMenu'
 import { useDispatch } from 'react-redux'
 import { getUser } from './services/user.service'
 import { setUser } from './store/actions/userActions'
+import OldGames from './pages/OldGames'
 
 function App() {
 
@@ -40,6 +41,7 @@ function App() {
           <Route path='' element={<OnlineMenu />} />
           <Route path=':id' element={<OnlineGameBoard />} />
         </Route>
+        <Route path='/profile' element={<OldGames />} />
         <Route path='/local' element={<LocalGame />} />
         <Route path='/signup' element={<Signup />} />
         <Route path='/signin' element={<SignIn />} />

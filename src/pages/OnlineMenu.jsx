@@ -46,6 +46,12 @@ function OnlineMenu() {
             setAlert("Insert Game Id.")
         }
     }
+
+    const handlePaste = async () => {
+        if (id === "") {
+            setId(await navigator.clipboard.readText())
+        }
+    }
     return (
         <div className="grid gap-6 mb-6 mt-32 border-[#646cff] border-[1px] rounded-xl p-20">
             {alert && <Alert message={alert} />}
@@ -65,6 +71,7 @@ function OnlineMenu() {
                     type="text"
                     value={id}
                     onChange={(event) => setId(event.target.value)}
+                    onClick={handlePaste}
                     className="text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="Insert Game Id Here *"
                 />
