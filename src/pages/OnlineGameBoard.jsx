@@ -5,19 +5,14 @@ import Winner from '../components/Winner'
 import { getGame, updateMove } from '../services/game.service';
 import { FaRegCopy } from "react-icons/fa";
 import Loading from '../components/Loading'
-import { io } from 'socket.io-client';
+import { setGame, nextGame, updateMoves } from '../store/actions/gameActions';
 
 function OnlineGameBoard() {
 
   const username = useSelector(state => state.user.user.username);
-  const [game, setGame] = useState({
-    _id: null,
-    p1: {},
-    p2: null,
-    p1_Moves: [],
-    p2_Moves: [],
-    score: { p1: 0, p2: 0 }
-  })
+  const game = useSelector(state => state.game.game);
+  const dispatch = useDispatch();
+
   const { id } = useParams();
   const [winner, setWinner] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -30,7 +25,7 @@ function OnlineGameBoard() {
     if (id) {
       getGame(id)
         .then(response => {
-          setGame(response.data.game)
+          dispatch(setGame(response.data.game))
           setLoading(false)
         })
     }
@@ -56,11 +51,7 @@ function OnlineGameBoard() {
       next: true,
       username: username === game.p1.username ? game.p2.username : game.p1.username
     })
-    setGame((prevGame) => ({
-      ...prevGame,
-      p1_Moves: [],
-      p2_Moves: [],
-    }));
+    dispatch(nextGame())
     setWinner(null)
   }
 
@@ -91,10 +82,7 @@ function OnlineGameBoard() {
           const list = game.p1_Moves
           list.push(pos)
           if (!check(list, true, pos)) {
-            setGame((prevGame) => ({
-              ...prevGame,
-              p1_Moves: [...prevGame.p1_Moves, pos],
-            }));
+            dispatch(updateMoves("p1_Moves", [...game.p1_Moves, pos]))
             updateTurn({
               next: false,
               score: false,
@@ -109,10 +97,7 @@ function OnlineGameBoard() {
           const list = game.p2_Moves
           list.push(pos)
           if (!check(list, true, pos)) {
-            setGame((prevGame) => ({
-              ...prevGame,
-              p2_Moves: [...prevGame.p2_Moves, pos],
-            }));
+            dispatch(updateMoves("p2_Moves", [...game.p2_Moves, pos]))
             updateTurn({
               next: false,
               score: false,
@@ -151,14 +136,7 @@ function OnlineGameBoard() {
             if (game.p1_Moves.length === game.p2_Moves.length) {
               setWinner(game.p2.username)
               if (update) {
-                setGame((prevGame) => ({
-                  ...prevGame,
-                  score: {
-                    ...prevGame.score,
-                    p2: prevGame.score.p2 + 1,
-                    p2_Moves: [...prevGame.p2_Moves, pos],
-                  },
-                }));
+                dispatch(updateMoves("p2_Moves", [...game.p2_Moves, pos], "p2"))
                 updateTurn({
                   next: false,
                   score: true,
@@ -170,14 +148,7 @@ function OnlineGameBoard() {
             } else {
               setWinner(game.p1.username)
               if (update) {
-                setGame((prevGame) => ({
-                  ...prevGame,
-                  score: {
-                    ...prevGame.score,
-                    p1: prevGame.score.p1 + 1,
-                    p1_Moves: [...prevGame.p1_Moves, pos],
-                  },
-                }));
+                dispatch(updateMoves("p1_Moves", [...game.p1_Moves, pos], "p1"))
                 updateTurn({
                   next: false,
                   score: true,
@@ -204,27 +175,6 @@ function OnlineGameBoard() {
     return res;
   }
 
-  useEffect(() => {
-    const socket = io(import.meta.env.VITE_API_URL)
-    socket.on('connect', () => {
-      if (username) {
-        socket.emit('register', username);
-      }
-    });
-
-    socket.on('newMove', (data) => {
-      setGame(data.newGame);
-    });
-
-    socket.on('gameJoined', (data) => {
-      setGame(data.newGame);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-
   return (
     <div className="border-[#646cff] border-[1px] rounded-xl pb-20 pt-4 px-20 mt-14">
       {loading
@@ -248,10 +198,10 @@ function OnlineGameBoard() {
                 </div>
               ))}
               <div>Your {
-              (game.p1_Moves.length <= game.p2_Moves.length && username === game.p1.username)
-              ||
-              (game.p1_Moves.length > game.p2_Moves.length && username === game.p2.username)
-               ? "" : "Opponent's"} Turn</div>
+                (game.p1_Moves.length <= game.p2_Moves.length && username === game.p1.username)
+                  ||
+                  (game.p1_Moves.length > game.p2_Moves.length && username === game.p2.username)
+                  ? "" : "Opponent's"} Turn</div>
             </>
             : <div className="text-[#646cff] font-bold text-5xl mt-14 mb-10">Waiting for Player 2</div>
           }
