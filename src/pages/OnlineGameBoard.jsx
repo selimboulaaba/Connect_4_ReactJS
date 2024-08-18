@@ -223,7 +223,7 @@ function OnlineGameBoard() {
     return () => {
       socket.disconnect();
     };
-  }, [socket]);
+  }, []);
 
   return (
     <div className="border-[#646cff] border-[1px] rounded-xl pb-20 pt-4 px-20 mt-14">
