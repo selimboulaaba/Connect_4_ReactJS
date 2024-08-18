@@ -204,8 +204,8 @@ function OnlineGameBoard() {
     return res;
   }
 
-  const socket = io(import.meta.env.VITE_API_URL)
   useEffect(() => {
+    const socket = io(import.meta.env.VITE_API_URL)
     socket.on('connect', () => {
       if (username) {
         socket.emit('register', username);
