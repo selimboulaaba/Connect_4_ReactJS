@@ -50,24 +50,24 @@ function SignIn() {
                 <h1 className='font-bold text-[#646cff] mb-10'>Sign In</h1>
                 {alert && <Alert message={alert} />}
                 <div>
-                    <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Username</label>
+                    <label htmlFor="username" className="block mb-2 text-sm font-medium text-white">Username</label>
                     <input
                         type="text"
                         id="username"
                         value={user.username}
                         onChange={(event) => handleChange("username", event)}
-                        className="text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        className="text-center border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Username *"
                     />
                 </div>
                 <div>
-                    <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
+                    <label htmlFor="password" className="block mb-2 text-sm font-medium text-white">Password</label>
                     <input
                         type="password"
                         id="password"
                         value={user.password}
                         onChange={(event) => handleChange("password", event)}
-                        className="text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        className="text-center border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Password *"
                     />
                 </div>

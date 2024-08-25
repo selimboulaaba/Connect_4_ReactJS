@@ -113,9 +113,9 @@ function OnlineGameBoard() {
 
   const color = (pos) => {
     if (game.p1_Moves.indexOf(pos) != -1) {
-      return "border-opacity-50 border-blue-500"
+      return "border-opacity-50 border-blue-500 bg-blue-500"
     } else if (game.p2_Moves.indexOf(pos) != -1) {
-      return "border-opacity-50 border-red-500"
+      return "border-opacity-50 border-red-500 bg-red-500"
     } else {
       return "border-opacity-20 border-white"
     }

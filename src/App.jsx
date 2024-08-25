@@ -16,6 +16,7 @@ import { setUser } from './store/actions/userActions'
 import { io } from 'socket.io-client';
 import { setGame } from './store/actions/gameActions'
 import Friends from './pages/Friends'
+import NotFound from './pages/NotFound'
 
 function App() {
 
@@ -72,6 +73,7 @@ function App() {
         <Route path='/local' element={<LocalGame />} />
         <Route path='/signup' element={<Signup />} />
         <Route path='/signin' element={<SignIn />} />
+        <Route path='/*' element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   )

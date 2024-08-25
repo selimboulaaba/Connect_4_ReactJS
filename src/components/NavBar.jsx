@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { signOut } from '../store/actions/userActions';
 import { io } from 'socket.io-client';
+import { FaUserFriends } from "react-icons/fa";
 
 function Navbar() {
     const user = useSelector(state => state.user);
@@ -22,6 +23,7 @@ function Navbar() {
                 {user.signedIn
                     ? <>
                         <Link to="/friends"><button>{user.user.username}</button></Link>
+                        {/* <Link to="/friends"><FaUserFriends/></Link> */}
                         <Link to="/"><button onClick={() => { dispatch(signOut()); handleDisconnect() }}>Sign Out</button></Link>
                     </>
                     : <Link to="/signin"><button>Sign In</button></Link>
