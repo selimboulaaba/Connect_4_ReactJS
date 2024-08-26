@@ -4,6 +4,7 @@ import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { signOut } from '../store/actions/userActions';
 import { io } from 'socket.io-client';
 import { FaUserFriends } from "react-icons/fa";
+import Loading from './Loading';
 
 function Navbar() {
     const user = useSelector(state => state.user);
@@ -20,13 +21,15 @@ function Navbar() {
         <nav className="flex sticky top-0 z-10 justify-center w-full">
             <div className="flex space-x-2 w-[50vw] justify-center">
                 <Link to="/"><button>Home</button></Link>
-                {user.signedIn
-                    ? <>
-                        <Link to="/friends"><button>{user.user.username}</button></Link>
-                        {/* <Link to="/friends"><FaUserFriends/></Link> */}
-                        <Link to="/"><button onClick={() => { dispatch(signOut()); handleDisconnect() }}>Sign Out</button></Link>
-                    </>
-                    : <Link to="/signin"><button>Sign In</button></Link>
+                {user.loading
+                    ? <Loading className="content-center"/>
+                    : user.signedIn
+                        ? <>
+                            <Link to="/profile"><button>{user.user.username}</button></Link>
+                            <Link to="/friends"><button><FaUserFriends className='h-6 w-6' /></button></Link>
+                            <Link to="/"><button onClick={() => { dispatch(signOut()); handleDisconnect() }}>Sign Out</button></Link>
+                        </>
+                        : <Link to="/signin"><button>Sign In</button></Link>
                 }
             </div>
         </nav>

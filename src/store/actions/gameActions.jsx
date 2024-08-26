@@ -2,6 +2,7 @@ export const ADD_GAME = 'ADD_GAME';
 export const NEXT_GAME = 'NEXT_GAME';
 export const UPDATE_MOVES = 'UPDATE_MOVES';
 export const UPDATE_WINNER = 'UPDATE_WINNER';
+export const SET_WINNER = 'SET_WINNER';
 
 export const setGame = (game) => {
     return {
@@ -30,3 +31,9 @@ export const updateWinner = (target, value, winner) => {
     };
 };
 
+export const setWinner = (winner) => {
+    return {
+        type: SET_WINNER,
+        payload: winner,
+    };
+};

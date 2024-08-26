@@ -5,16 +5,17 @@ import Winner from '../components/Winner'
 import { getGame, updateMove } from '../services/game.service';
 import { FaRegCopy } from "react-icons/fa";
 import Loading from '../components/Loading'
-import { setGame, nextGame, updateMoves } from '../store/actions/gameActions';
+import { setGame, nextGame, updateMoves, updateWinner, setWinner } from '../store/actions/gameActions';
+import { FaCircle } from "react-icons/fa";
 
 function OnlineGameBoard() {
 
   const username = useSelector(state => state.user.user.username);
   const game = useSelector(state => state.game.game);
+  const winner = useSelector(state => state.game.winner);
   const dispatch = useDispatch();
 
   const { id } = useParams();
-  const [winner, setWinner] = useState(null)
   const [loading, setLoading] = useState(true)
 
   const updateTurn = async (body) => {
@@ -32,10 +33,14 @@ function OnlineGameBoard() {
   }, [id])
 
   useEffect(() => {
-    setWinner(null)
-    check(game.p1_Moves, false, null)
-    check(game.p2_Moves, false, null)
-  }, [game])
+    if (game.p1_Moves.length + game.p2_Moves.length === 42) {
+      dispatch(setWinner("It's a Draw!"))
+    } else {
+      dispatch(setWinner(null))
+      check(game.p1_Moves, false, null, true)
+      check(game.p2_Moves, false, null, true)
+    }
+  }, [game.p1LastMove])
 
   const rows = 6
   const columns = 7
@@ -52,7 +57,7 @@ function OnlineGameBoard() {
       username: username === game.p1.username ? game.p2.username : game.p1.username
     })
     dispatch(nextGame())
-    setWinner(null)
+    dispatch(setWinner(null))
   }
 
   const copyToClipboard = () => {
@@ -77,35 +82,31 @@ function OnlineGameBoard() {
   const handleClick = (colIndex) => {
     const pos = getDownPos(colIndex);
     if ((game.p1_Moves.indexOf(pos) === -1) && (game.p2_Moves.indexOf(pos) === -1)) {
-      if (game.p1_Moves.length <= game.p2_Moves.length) {
-        if (game.p1.username === username) {
-          const list = game.p1_Moves
-          list.push(pos)
-          if (!check(list, true, pos)) {
-            dispatch(updateMoves("p1_Moves", [...game.p1_Moves, pos]))
-            updateTurn({
-              next: false,
-              score: false,
-              p1: true,
-              value: pos,
-              username: game.p2.username
-            })
-          }
+      if (game.p1.username === username && !game.p1LastMove) {
+        const list = game.p1_Moves
+        list.push(pos)
+        if (!check(list, true, pos, false)) {
+          dispatch(updateMoves("p1_Moves", [...game.p1_Moves, pos]))
+          updateTurn({
+            next: false,
+            score: false,
+            p1: true,
+            value: pos,
+            username: game.p2.username
+          })
         }
-      } else {
-        if (game.p2.username === username) {
-          const list = game.p2_Moves
-          list.push(pos)
-          if (!check(list, true, pos)) {
-            dispatch(updateMoves("p2_Moves", [...game.p2_Moves, pos]))
-            updateTurn({
-              next: false,
-              score: false,
-              p1: false,
-              value: pos,
-              username: game.p1.username
-            })
-          }
+      } else if (game.p2.username === username && game.p1LastMove) {
+        const list = game.p2_Moves
+        list.push(pos)
+        if (!check(list, true, pos, false)) {
+          dispatch(updateMoves("p2_Moves", [...game.p2_Moves, pos]))
+          updateTurn({
+            next: false,
+            score: false,
+            p1: false,
+            value: pos,
+            username: game.p1.username
+          })
         }
       }
     }
@@ -121,7 +122,7 @@ function OnlineGameBoard() {
     }
   }
 
-  const checkWinner = (i, j, list, update, pos) => {
+  const checkWinner = (i, j, list, update, pos, setWin) => {
     if (list.indexOf(i + "" + j) !== -1) {
       for (const [dx, dy] of directions) {
         let count = 1;
@@ -133,10 +134,11 @@ function OnlineGameBoard() {
           }
           count++;
           if (count === 4) {
-            if (game.p1_Moves.length === game.p2_Moves.length) {
-              setWinner(game.p2.username)
+            if (!game.p1LastMove) {
+              if (setWin)
+                dispatch(setWinner(game.p2.username + " is the Winner!"))
               if (update) {
-                dispatch(updateMoves("p2_Moves", [...game.p2_Moves, pos], "p2"))
+                dispatch(updateWinner("p2_Moves", [...game.p2_Moves, pos], "p2"))
                 updateTurn({
                   next: false,
                   score: true,
@@ -145,10 +147,11 @@ function OnlineGameBoard() {
                   username: username === game.p1.username ? game.p2.username : game.p1.username
                 })
               }
-            } else {
-              setWinner(game.p1.username)
+            } else{
+              if (setWin)
+                dispatch(setWinner(game.p1.username + " is the Winner!"))
               if (update) {
-                dispatch(updateMoves("p1_Moves", [...game.p1_Moves, pos], "p1"))
+                dispatch(updateWinner("p1_Moves", [...game.p1_Moves, pos], "p1"))
                 updateTurn({
                   next: false,
                   score: true,
@@ -165,11 +168,11 @@ function OnlineGameBoard() {
     }
   }
 
-  const check = (list, update, pos) => {
+  const check = (list, update, pos, setWin) => {
     let res = false;
     for (let i = 0; i < 6; i++) {
       for (let j = 0; j < 7; j++) {
-        res = res || checkWinner(i, j, list, update, pos)
+        res = res || checkWinner(i, j, list, update, pos, setWin)
       }
     }
     return res;
@@ -183,7 +186,11 @@ function OnlineGameBoard() {
           {username === game.p1.username && <div onClick={copyToClipboard} className='flex items-center ms-auto justify-end cursor-pointer hover:border-2 w-fit hover:rounded-lg hover:border-[#646cff] text-[#646cff] p-3'>Copy this and send to your Friend <FaRegCopy className='ms-3 w-6 h-6 fill-[#646cff]' /></div>}
           {game.p2
             ? <>
-              <div className="text-[#646cff] font-bold text-5xl mt-14 mb-10">{game.p1.username} {game.score.p1} - {game.score.p2} {game.p2.username}</div>
+              <div className="text-[#646cff] font-bold text-5xl mt-14 mb-10">
+                <FaCircle className='fill-blue-500 h-4 inline-block' />
+                {game.p1.username} {game.score.p1} - {game.score.p2} {game.p2.username}
+                <FaCircle className='fill-red-500 h-4 inline-block' />
+              </div>
               {!!winner && username === game.p1.username && <button className='mb-5' onClick={next}>Next</button>}
               {[...Array(rows)].map((_, rowIndex) => (
                 <div key={rowIndex} className='flex justify-center items-center'>
@@ -197,11 +204,11 @@ function OnlineGameBoard() {
                   ))}
                 </div>
               ))}
-              <div>Your {
-                (game.p1_Moves.length <= game.p2_Moves.length && username === game.p1.username)
+              {!winner && <div>Your {
+                (username === game.p1.username && !game.p1LastMove)
                   ||
-                  (game.p1_Moves.length > game.p2_Moves.length && username === game.p2.username)
-                  ? "" : "Opponent's"} Turn</div>
+                  (username === game.p2.username && game.p1LastMove)
+                  ? "" : "Opponent's"} Turn</div>}
             </>
             : <div className="text-[#646cff] font-bold text-5xl mt-14 mb-10">Waiting for Player 2</div>
           }

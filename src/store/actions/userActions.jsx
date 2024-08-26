@@ -1,6 +1,15 @@
 export const SIGN_IN = 'SIGN_IN';
 export const SIGN_OUT = 'SIGN_OUT';
 export const SET_USER = 'SET_USER';
+export const LOADING = 'LOADING';
+
+export const startLoading = () => {
+  return {
+    type: LOADING,
+    payload: true,
+  };
+};
+
 
 export const signIn = (user) => {
   return {

@@ -19,6 +19,7 @@ export const getUserByUsername = async (username) => {
     return await axios.get(url + "/" + username, { headers: auth.header() })
 }
 
-export const addFriend = async (id) => {
-    return await axios.post(url + "/addFriend", { friendId: id }, { headers: auth.header() })
+export const handleFriend = async (id) => {
+    return await axios.post(url + "/handleFriend", { friendId: id }, { headers: auth.header() })
 }
+

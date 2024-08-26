@@ -1,4 +1,4 @@
-import { ADD_GAME, NEXT_GAME, UPDATE_MOVES, UPDATE_WINNER } from '../actions/gameActions';
+import { ADD_GAME, NEXT_GAME, SET_WINNER, UPDATE_MOVES, UPDATE_WINNER } from '../actions/gameActions';
 
 const initialState = {
     game: {
@@ -9,6 +9,7 @@ const initialState = {
         p2_Moves: [],
         score: { p1: 0, p2: 0 }
     },
+    winner: null
 };
 
 const gameReducer = (state = initialState, action) => {
@@ -26,6 +27,7 @@ const gameReducer = (state = initialState, action) => {
                     p1_Moves: [],
                     p2_Moves: [],
                 },
+                winner: null
             };
         case UPDATE_MOVES:
             return {
@@ -43,9 +45,14 @@ const gameReducer = (state = initialState, action) => {
                     [action.payload.target]: action.payload.value,
                     score: {
                         ...state.game.score,
-                        [winner]: state.game.score[winner] + 1,
+                        [action.payload.winner]: state.game.score[action.payload.winner] + 1,
                     }
                 },
+            };
+        case SET_WINNER:
+            return {
+                ...state,
+                winner: action.payload
             };
         default:
             return state;

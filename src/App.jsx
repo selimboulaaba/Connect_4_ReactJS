@@ -12,11 +12,12 @@ import OnlineGameBoard from './pages/OnlineGameBoard'
 import OnlineMenu from './pages/OnlineMenu'
 import { useDispatch, useSelector } from 'react-redux'
 import { getUser } from './services/user.service'
-import { setUser } from './store/actions/userActions'
+import { setUser, startLoading } from './store/actions/userActions'
 import { io } from 'socket.io-client';
-import { setGame } from './store/actions/gameActions'
+import { nextGame, setGame } from './store/actions/gameActions'
 import Friends from './pages/Friends'
 import NotFound from './pages/NotFound'
+import Profile from './pages/Profile'
 
 function App() {
 
@@ -26,6 +27,7 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
+      dispatch(startLoading())
       getUser()
         .then(response => {
           dispatch(setUser(response.data.user));
@@ -33,7 +35,7 @@ function App() {
         .catch(error => {
         });
     }
-  }, [dispatch]);
+  }, [username]);
 
   const socket = io(import.meta.env.VITE_API_URL)
   useEffect(() => {
@@ -45,14 +47,12 @@ function App() {
 
     socket.on('newMove', (data) => {
       dispatch(setGame(data.newGame))
+      if (data.next)
+        dispatch(nextGame())
     });
 
     socket.on('gameJoined', (data) => {
       dispatch(setGame(data.newGame));
-    });
-
-    socket.on('PlayerConnectedToGame', (data) => {
-      console.log(data.user, data.availability);
     });
 
     return () => {
@@ -69,6 +69,7 @@ function App() {
           <Route path='' element={<OnlineMenu />} />
           <Route path=':id' element={<OnlineGameBoard />} />
         </Route>
+        <Route path='/profile' element={<Profile />} />
         <Route path='/friends' element={<Friends />} />
         <Route path='/local' element={<LocalGame />} />
         <Route path='/signup' element={<Signup />} />

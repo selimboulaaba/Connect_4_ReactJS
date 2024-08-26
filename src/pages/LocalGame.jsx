@@ -71,9 +71,9 @@ function LocalGame() {
           count++;
           if (count === 4) {
             if (p1.length === p2.length) {
-              setWinner("Player 2")
+              setWinner("Player 2 is the Winner!")
             } else {
-              setWinner("Player 1")
+              setWinner("Player 1 is the Winner!")
             }
           }
         }
@@ -82,10 +82,14 @@ function LocalGame() {
   }
 
   useEffect(() => {
-    for (let i = 0; i < 6; i++) {
-      for (let j = 0; j < 7; j++) {
-        checkWinner(i, j, p1)
-        checkWinner(i, j, p2)
+    if (p1.length + p2.length === 42) {
+      setWinner("It's a Draw!")
+    } else {
+      for (let i = 0; i < 6; i++) {
+        for (let j = 0; j < 7; j++) {
+          checkWinner(i, j, p1)
+          checkWinner(i, j, p2)
+        }
       }
     }
   }, [p1, p2])
