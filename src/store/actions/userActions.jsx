@@ -1,15 +1,20 @@
 export const SIGN_IN = 'SIGN_IN';
 export const SIGN_OUT = 'SIGN_OUT';
 export const SET_USER = 'SET_USER';
-export const LOADING = 'LOADING';
+export const START_LOADING = 'START_LOADING';
+export const STOP_LOADING = 'STOP_LOADING';
 
 export const startLoading = () => {
   return {
-    type: LOADING,
-    payload: true,
+    type: START_LOADING,
   };
 };
 
+export const stopLoading = () => {
+  return {
+    type: STOP_LOADING,
+  };
+};
 
 export const signIn = (user) => {
   return {

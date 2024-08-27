@@ -1,8 +1,10 @@
 import Loading from '../../components/Loading';
-import { LOADING, SET_USER, SIGN_IN, SIGN_OUT } from '../actions/userActions';
+import { START_LOADING, STOP_LOADING, SET_USER, SIGN_IN, SIGN_OUT } from '../actions/userActions';
 
 const initialState = {
-  user: {},
+  user: {
+    username: ""
+  },
   signedIn: false,
   token: localStorage.getItem('token'),
   loading: false,
@@ -10,10 +12,15 @@ const initialState = {
 
 const userReducer = (state = initialState, action) => {
   switch (action.type) {
-    case LOADING:
+    case START_LOADING:
       return {
         ...state,
         loading: true,
+      }
+    case STOP_LOADING:
+      return {
+        ...state,
+        loading: false,
       }
     case SIGN_IN:
       localStorage.setItem('token', action.payload.token);

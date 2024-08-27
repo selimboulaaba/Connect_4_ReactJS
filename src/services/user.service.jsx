@@ -23,3 +23,6 @@ export const handleFriend = async (id) => {
     return await axios.post(url + "/handleFriend", { friendId: id }, { headers: auth.header() })
 }
 
+export const updateProfile = async (id, body) => {
+    return await axios.put(url + "/" + id, body, { headers: auth.header() })
+}
