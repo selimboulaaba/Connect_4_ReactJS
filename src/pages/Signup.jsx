@@ -52,8 +52,9 @@ function Signup() {
                         id="username"
                         value={user.username}
                         onChange={(event) => handleChange("username", event)}
-                        className="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
+                        className="text-center border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Username *"
+                        autoFocus
                     />
                 </div>
                 <div>
@@ -63,7 +64,7 @@ function Signup() {
                         id="password"
                         value={user.password}
                         onChange={(event) => handleChange("password", event)}
-                        className="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
+                        className="text-center border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Password *"
                     />
                 </div>

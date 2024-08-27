@@ -3,7 +3,7 @@ import Loading from '../components/Loading';
 import Alert from '../components/Alert';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateProfile } from '../services/user.service'
-import { startLoading, stopLoading } from '../store/actions/userActions';
+import { signIn, startLoading, stopLoading } from '../store/actions/userActions';
 
 function Profile() {
   const connectedUser = useSelector(state => state.user);
@@ -40,7 +40,7 @@ function Profile() {
       dispatch(startLoading())
       updateProfile(connectedUser.user._id, user)
         .then(response => {
-          dispatch(setUser(response.data.user))
+          dispatch(signIn(response.data))
         })
         .catch(error => {
           setAlert(error.response.data.message)
@@ -52,13 +52,7 @@ function Profile() {
     <form>
       <div className="grid gap-6 mb-6 mt-28 border-[#646cff] border-[1px] rounded-xl p-20">
 
-        <h1 className='font-bold text-[#646cff] mb-10'>
-          Update -
-          {connectedUser.loading
-            ? <Loading className="inline-block" />
-            : connectedUser.user.username
-          }
-          -</h1>
+        <h1 className='font-bold text-[#646cff] mb-10'>Update Profile</h1>
         {alert && <Alert message={alert} />}
         <div>
           <label htmlFor="username" className="block mb-2 text-sm font-medium text-white">Username</label>

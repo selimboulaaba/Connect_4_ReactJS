@@ -13,7 +13,6 @@ function Friends() {
 
   const [friendId, setFriendId] = useState("")
   const [friendsLoading, setFriendsLoading] = useState(false)
-  const [alert, setAlert] = useState("")
   const [users, setUsers] = useState([])
 
   const canInvite = (u) => {
@@ -55,7 +54,6 @@ function Friends() {
 
   return (
     <div className="grid gap-6 mb-6 mt-16 border-[#646cff] border-[1px] rounded-xl p-20">
-      {alert && <Alert message={alert} />}
       <form>
         <div className='grid'>
           <input
@@ -64,6 +62,7 @@ function Friends() {
             onChange={searchFriends}
             className="col-span-5 text-center border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
             placeholder="Add Friend with Username"
+            autoFocus
           />
         </div>
       </form>
@@ -83,6 +82,7 @@ function Friends() {
           </div>
         ))}
       <div className='border-[1px] rounded-xl border-[#646cff]'></div>
+      {user.friends?.length === 0 && <p className='text-[#646cff] font-semibold'>Lonely ?</p>}
       {loading
         ? <Loading />
         : user.friends?.map(friend => (

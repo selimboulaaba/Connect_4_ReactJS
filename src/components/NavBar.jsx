@@ -27,7 +27,7 @@ function Navbar() {
                         ? <>
                             <Link to="/profile"><button>{user.user.username}</button></Link>
                             <Link to="/friends"><button><FaUserFriends className='h-6 w-6' /></button></Link>
-                            <Link to="/"><button onClick={() => { dispatch(signOut()); handleDisconnect() }}>Sign Out</button></Link>
+                            <Link to="/signin"><button onClick={() => { dispatch(signOut()); handleDisconnect() }}>Sign Out</button></Link>
                         </>
                         : <Link to="/signin"><button>Sign In</button></Link>
                 }
