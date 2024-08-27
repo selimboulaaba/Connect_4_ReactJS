@@ -14,6 +14,7 @@ function Friends() {
   const [friendId, setFriendId] = useState("")
   const [friendsLoading, setFriendsLoading] = useState(false)
   const [users, setUsers] = useState([])
+  const [friendLoading, setloading] = useState(null)
 
   const canInvite = (u) => {
     if (u._id === user._id) {
@@ -28,23 +29,31 @@ function Friends() {
   }
 
   const searchFriends = (event) => {
-    setFriendsLoading(true)
     setFriendId(event.target.value)
-    getUserByUsername(event.target.value)
-      .then(response => {
-        const data = response.data.users
-        setUsers(data ? data.filter(u => canInvite(u)) : [])
-      })
-      .finally(() => {
-        setFriendsLoading(false)
-      })
+    if (event.target.value === "") {
+      setUsers([])
+    } else {
+      setFriendsLoading(true)
+      getUserByUsername(event.target.value)
+        .then(response => {
+          const data = response.data.users
+          setUsers(data ? data.filter(u => canInvite(u)) : [])
+        })
+        .finally(() => {
+          setFriendsLoading(false)
+        })
+    }
   }
 
   const handleFriends = (friend) => {
+    setloading(friend)
     handleFriend(friend)
       .then(response => {
         dispatch(setUser(response.data.user))
         setUsers(users.filter(user => user._id !== friend))
+      })
+      .finally(() => {
+        setloading(null)
       })
   }
 
@@ -77,12 +86,15 @@ function Friends() {
               disabled
             />
             <Link onClick={(event) => event.preventDefault()} className='col-span-2'>
-              <button onClick={() => handleFriends(user._id)} type='submit' className="w-full">Add Friend</button>
+              {friendLoading === user._id
+                ? <button disabled><Loading className="mx-3" /></button>
+                : <button onClick={() => handleFriends(user._id)} type='submit' className="w-full">Add Friend</button>
+              }
             </Link>
           </div>
         ))}
       <div className='border-[1px] rounded-xl border-[#646cff]'></div>
-      {user.friends?.length === 0 && <p className='text-[#646cff] font-semibold'>Lonely ?</p>}
+      {user.friends?.length === 0 && <p className='text-[#646cff] font-semibold'>Lonely ? Add some Friends.</p>}
       {loading
         ? <Loading />
         : user.friends?.map(friend => (
@@ -92,7 +104,10 @@ function Friends() {
                 <button onClick={() => inviteToGame(friend._id)} className="w-full">Invite {friend.username}</button>
               </Link>
               <Link className='col-span-2' onClick={(event) => event.preventDefault()}>
-                <button onClick={() => handleFriends(friend._id)}>Remove Friend</button>
+                {friendLoading === friend._id
+                  ? <button className='w-full h-full py-2 px-4' disabled><Loading /></button>
+                  : <button className='w-full h-full py-2 px-4' onClick={() => handleFriends(friend._id)}>Remove Friend</button>
+                }
               </Link>
             </div>
           </div>

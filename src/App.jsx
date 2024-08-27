@@ -18,6 +18,7 @@ import { nextGame, setGame } from './store/actions/gameActions'
 import Friends from './pages/Friends'
 import NotFound from './pages/NotFound'
 import Profile from './pages/Profile'
+import AuthGuard from './components/AuthGuard'
 
 function App() {
 
@@ -64,17 +65,23 @@ function App() {
     <BrowserRouter>
       <Navbar />
       <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/online' >
-          <Route path='' element={<OnlineMenu />} />
-          <Route path=':id' element={<OnlineGameBoard />} />
+      
+      <Route path='/' element={<Home />} />
+      <Route path='/local' element={<LocalGame />} />
+      
+        <Route element={<AuthGuard />}>
+          <Route path='/online' >
+            <Route path='' element={<OnlineMenu />} />
+            <Route path=':id' element={<OnlineGameBoard />} />
+          </Route>
+          <Route path='/profile' element={<Profile />} />
+          <Route path='/friends' element={<Friends />} />
         </Route>
-        <Route path='/profile' element={<Profile />} />
-        <Route path='/friends' element={<Friends />} />
-        <Route path='/local' element={<LocalGame />} />
+
         <Route path='/signup' element={<Signup />} />
         <Route path='/signin' element={<SignIn />} />
         <Route path='/*' element={<NotFound />} />
+
       </Routes>
     </BrowserRouter>
   )
