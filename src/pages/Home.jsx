@@ -7,9 +7,9 @@ function Home() {
 
 
   return (
-    <div className='grid gap-6 mb-6 mt-12 border-[#646cff] border-[1px] rounded-xl p-20'>
-      <Link to={user.signedIn ? "/online" : "/signin"}><button className='w-full'>Play an Online Game</button></Link>
-      <Link to="/local"><button className='w-full'>Play a Local Game</button></Link>
+    <div className='grid gap-6 mb-6 mt-12 border-[#646cff] border-[1px] rounded-xl py-20'>
+      <Link to={user.signedIn ? "/online" : "/signin"}><button className='w-[90%] md:w-[70%] lg:w-[50%] m-auto '>Play an Online Game</button></Link>
+      <Link to="/local"><button className='w-[90%] md:w-[70%] lg:w-[50%] m-auto '>Play a Local Game</button></Link>
     </div>
   )
 }

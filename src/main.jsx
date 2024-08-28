@@ -8,7 +8,9 @@ import store from './store/store.jsx'
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+      <div className='md:mx-[2rem] mx-3'>
+        <App />
+      </div>
     </Provider>
   </React.StrictMode>,
 )

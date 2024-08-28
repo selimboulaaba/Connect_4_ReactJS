@@ -44,9 +44,9 @@ function LocalGame() {
 
   const color = (pos) => {
     if (p1.indexOf(pos) != -1) {
-      return "border-opacity-50 border-blue-500 bg-blue-500"
+      return "border-opacity-50 border-blue-700 bg-blue-500"
     } else if (p2.indexOf(pos) != -1) {
-      return "border-opacity-50 border-red-500 bg-red-500"
+      return "border-opacity-50 border-red-700 bg-red-500"
     } else {
       return "border-opacity-20 border-white"
     }
@@ -95,14 +95,14 @@ function LocalGame() {
   }, [p1, p2])
 
   return (
-    <div className='border-[#646cff] border-[1px] rounded-xl pb-20 px-20 mt-14'>
-      <button className='mb-20 mt-10' onClick={reset}>Reset</button>
+    <div className='border-[#646cff] border-[1px] rounded-xl pb-16 lg:px-20 mt-14'>
+      <button className='mb-16 mt-10' onClick={reset}>Reset</button>
       {[...Array(rows)].map((_, rowIndex) => (
-        <div key={rowIndex} className='flex justify-center items-center'>
+        <div key={rowIndex} className='flex justify-center items-center px-3'>
           {[...Array(columns)].map((_, colIndex) => (
             <div
               key={rowIndex * columns + colIndex}
-              className={color(rowIndex.toString() + colIndex.toString()) + ` w-12 h-12 m-1 rounded-full border-4 ${winner ? '' : 'cursor-pointer'}`}
+              className={color(rowIndex.toString() + colIndex.toString()) + ` w-[20vw] sm:w-[10vw] md:w-16 lg:w-20 aspect-square m-[2px] sm:m-[3px] md:m-[5px] rounded-full border-4 ${winner ? '' : 'cursor-pointer'}`}
               onClick={() => winner ? null : handleClick(colIndex)}
             >
             </div>

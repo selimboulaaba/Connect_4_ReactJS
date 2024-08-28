@@ -18,16 +18,16 @@ function Navbar() {
     }
 
     return (
-        <nav className="flex sticky top-0 z-10 justify-center w-full">
-            <div className="flex space-x-2 w-[50vw] justify-center">
+        <nav className="flex top-0 z-10 justify-center w-full mt-[2rem]">
+            <div className="flex space-x-2  justify-center">
                 <Link to="/"><button>Home</button></Link>
                 {user.loading
                     ? <Loading className="content-center"/>
                     : user.signedIn
                         ? <>
-                            <Link to="/profile"><button>{user.user.username}</button></Link>
+                            <Link to="/profile"><button className='text-nowrap'>{user.user.username}</button></Link>
                             <Link to="/friends"><button><FaUserFriends className='h-6 w-6' /></button></Link>
-                            <Link to="/signin"><button onClick={() => { dispatch(signOut()); handleDisconnect() }}>Sign Out</button></Link>
+                            <Link to="/signin"><button onClick={() => { dispatch(signOut()); handleDisconnect() }} className='text-nowrap'>Sign Out</button></Link>
                         </>
                         : <Link to="/signin"><button>Sign In</button></Link>
                 }

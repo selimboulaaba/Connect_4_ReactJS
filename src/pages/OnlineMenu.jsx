@@ -53,18 +53,18 @@ function OnlineMenu() {
         }
     }
     return (
-        <div className="grid gap-6 mb-6 mt-32 border-[#646cff] border-[1px] rounded-xl p-20">
+        <div className="grid gap-6 mb-6 mt-12 border-[#646cff] border-[1px] rounded-xl py-20">
             {alert && <Alert message={alert} />}
             <div>
                 {loading
                     ? <Loading />
-                    : <Link onClick={(event) => event.preventDefault()}><button onClick={create} className="w-full">Create a New Game</button></Link>
+                    : <Link onClick={(event) => event.preventDefault()}><button onClick={create} className="w-[90%] md:w-[70%] lg:w-[50%] m-auto ">Create a New Game</button></Link>
                 }
             </div>
-            <div className='font-bold grid grid-cols-9 items-center'>
-                <div className='border-[1px] rounded-xl col-span-4 border-[#646cff]'></div>
-                <div className='text-3xl mb-[5px] font-bold text-[#646cff]'>OR</div>
-                <div className='border-[1px] rounded-xl col-span-4 border-[#646cff]'></div>
+            <div className='font-bold grid grid-cols-11 sm:grid-cols-9 items-center px-6'>
+                <div className='border-[1px] rounded-xl col-span-4 sm:col-span-4 border-[#646cff]'></div>
+                <div className='text-3xl mb-[5px] font-bold col-span-3 sm:col-span-1 text-[#646cff] text-center'>OR</div>
+                <div className='border-[1px] rounded-xl col-span-4 sm:col-span-4 border-[#646cff]'></div>
             </div>
             <div>
                 <input
@@ -72,14 +72,14 @@ function OnlineMenu() {
                     value={id}
                     onChange={(event) => setId(event.target.value)}
                     onClick={handlePaste}
-                    className="text-center border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
+                    className="w-[90%] md:w-[70%] lg:w-[50%] m-auto text-center border text-sm rounded-lg block p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Insert Game Id Here *"
                 />
             </div>
             <div>
                 {loading
                     ? <Loading />
-                    : <Link onClick={(event) => event.preventDefault()}><button onClick={join} className="w-full">Join a Game</button></Link>
+                    : <Link onClick={(event) => event.preventDefault()}><button onClick={join} className="w-[90%] md:w-[70%] lg:w-[50%] m-auto ">Join a Game</button></Link>
                 }
             </div>
         </div>
