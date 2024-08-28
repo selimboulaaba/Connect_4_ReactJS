@@ -19,6 +19,7 @@ import Friends from './pages/Friends'
 import NotFound from './pages/NotFound'
 import Profile from './pages/Profile'
 import AuthGuard from './components/AuthGuard'
+import ScrollToTop from './components/ScrollToTop'
 
 function App() {
 
@@ -63,12 +64,13 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Navbar />
       <Routes>
-      
-      <Route path='/' element={<Home />} />
-      <Route path='/local' element={<LocalGame />} />
-      
+
+        <Route path='/' element={<Home />} />
+        <Route path='/local' element={<LocalGame />} />
+
         <Route element={<AuthGuard />}>
           <Route path='/online' >
             <Route path='' element={<OnlineMenu />} />

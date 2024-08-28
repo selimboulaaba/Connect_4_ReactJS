@@ -1,6 +1,6 @@
 import React from 'react'
 
-function Loading({ className = null, w = 8, h = 8 }) {
+function Loading({ className = null, w = "8", h = "8" }) {
     return (
         <div role="status" className={className}>
             <svg aria-hidden="true" className={"m-auto w-" + w + " h-" + h + " animate-spin text-gray-600 fill-blue-600"} viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
