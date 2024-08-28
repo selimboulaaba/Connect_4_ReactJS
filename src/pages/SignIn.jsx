@@ -74,7 +74,7 @@ function SignIn() {
                 </div>
                 {
                     loading
-                        ? <Loading />
+                        ? <Loading  w="6" h="6"/>
                         : <button onClick={submit} className='w-[90%] md:w-[70%] lg:w-[50%] m-auto '>Sign In</button>
                 }
                 <Link to="/signup">Create a New Account</Link>

@@ -82,31 +82,33 @@ function OnlineGameBoard() {
   const handleClick = (colIndex) => {
     const pos = getDownPos(colIndex);
     if ((game.p1_Moves.indexOf(pos) === -1) && (game.p2_Moves.indexOf(pos) === -1)) {
-      if (game.p1.username === username && !game.p1LastMove) {
-        const list = game.p1_Moves
-        list.push(pos)
-        if (!check(list, true, pos, false)) {
-          dispatch(updateMoves("p1_Moves", [...game.p1_Moves, pos]))
-          updateTurn({
-            next: false,
-            score: false,
-            p1: true,
-            value: pos,
-            username: game.p2.username
-          })
-        }
-      } else if (game.p2.username === username && game.p1LastMove) {
-        const list = game.p2_Moves
-        list.push(pos)
-        if (!check(list, true, pos, false)) {
-          dispatch(updateMoves("p2_Moves", [...game.p2_Moves, pos]))
-          updateTurn({
-            next: false,
-            score: false,
-            p1: false,
-            value: pos,
-            username: game.p1.username
-          })
+      if (+pos[0] >= 0) {
+        if (game.p1.username === username && !game.p1LastMove) {
+          const list = game.p1_Moves
+          list.push(pos)
+          if (!check(list, true, pos, false)) {
+            dispatch(updateMoves("p1_Moves", [...game.p1_Moves, pos]))
+            updateTurn({
+              next: false,
+              score: false,
+              p1: true,
+              value: pos,
+              username: game.p2.username
+            })
+          }
+        } else if (game.p2.username === username && game.p1LastMove) {
+          const list = game.p2_Moves
+          list.push(pos)
+          if (!check(list, true, pos, false)) {
+            dispatch(updateMoves("p2_Moves", [...game.p2_Moves, pos]))
+            updateTurn({
+              next: false,
+              score: false,
+              p1: false,
+              value: pos,
+              username: game.p1.username
+            })
+          }
         }
       }
     }
@@ -147,7 +149,7 @@ function OnlineGameBoard() {
                   username: username === game.p1.username ? game.p2.username : game.p1.username
                 })
               }
-            } else{
+            } else {
               if (setWin)
                 dispatch(setWinner(game.p1.username + " is the Winner!"))
               if (update) {
@@ -181,7 +183,7 @@ function OnlineGameBoard() {
   return (
     <div className="border-[#646cff] border-[1px] rounded-xl pb-20 pt-4 lg:px-20 mt-14">
       {loading
-        ? <Loading className="pt-28 pb-12" />
+        ? <Loading className="pt-28 pb-12 px-[45%]" w="8" h="8" />
         : <>
           {username === game.p1.username && <div onClick={copyToClipboard} className='flex items-center ms-auto justify-end cursor-pointer hover:border-2 w-fit hover:rounded-lg hover:border-[#646cff] text-[#646cff] p-3'>Copy this and send to your Friend <FaRegCopy className='ms-3 w-6 h-6 fill-[#646cff]' /></div>}
           {game.p2

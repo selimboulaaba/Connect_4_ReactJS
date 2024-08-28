@@ -22,7 +22,7 @@ function Navbar() {
             <div className="flex space-x-2  justify-center">
                 <Link to="/"><button>Home</button></Link>
                 {user.loading
-                    ? <Loading className="content-center"/>
+                    ? <button disabled><Loading className="content-center" w="6" h="6"/></button>
                     : user.signedIn
                         ? <>
                             <Link to="/profile"><button className='text-nowrap'>{user.user.username}</button></Link>

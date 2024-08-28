@@ -64,6 +64,7 @@ function Friends() {
 
   return (
     <div className="grid gap-6 mb-6 mt-16 border-[#646cff] border-[1px] rounded-xl py-20">
+              <h1 className='font-bold text-[#646cff] mb-10 underline text-nowrap text-4xl sm:text-6xl'>Friends</h1>
       <form>
         <div className='grid'>
           <input
@@ -77,7 +78,7 @@ function Friends() {
         </div>
       </form>
       {friendsLoading
-        ? <Loading />
+        ? <Loading  w="6" h="6"/>
         : users?.map(user => (
           <div className="grid grid-cols-7 gap-3 mx-5 md:mx-12" key={user._id}>
             <Link onClick={(event) => event.preventDefault()} className='col-span-7'>
@@ -91,7 +92,7 @@ function Friends() {
       <div className='border-[1px] rounded-xl border-[#646cff] mx-12'></div>
       {user.friends?.length === 0 && <p className='text-[#646cff] font-semibold'>Lonely ? Add some Friends.</p>}
       {loading
-        ? <Loading />
+        ? <Loading  w="6" h="6"/>
         : user.friends?.map(friend => (
           <div key={friend._id}>
             <div className='flex gap-3 mx-5 md:mx-12'>

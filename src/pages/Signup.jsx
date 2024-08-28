@@ -70,7 +70,7 @@ function Signup() {
                 </div>
                 {
                     loading
-                        ? <Loading />
+                        ? <Loading  w="6" h="6"/>
                         : <button onClick={submit} className='w-[90%] md:w-[70%] lg:w-[50%] m-auto '>Sign Up</button>
                 }
                 <Link to="/signin">Sign in with Existing Account.</Link>

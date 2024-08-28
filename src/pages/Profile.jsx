@@ -89,7 +89,7 @@ function Profile() {
         </div>
         {
           connectedUser.loading
-            ? <Loading />
+            ? <Loading  w="6" h="6"/>
             : <button onClick={submit} className='w-[90%] md:w-[70%] lg:w-[50%] m-auto '>Update</button>
         }
       </div>

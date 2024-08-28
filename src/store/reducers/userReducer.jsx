@@ -1,4 +1,3 @@
-import Loading from '../../components/Loading';
 import { START_LOADING, STOP_LOADING, SET_USER, SIGN_IN, SIGN_OUT } from '../actions/userActions';
 
 const initialState = {

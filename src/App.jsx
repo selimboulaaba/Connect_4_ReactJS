@@ -82,6 +82,7 @@ function App() {
 
         <Route path='/signup' element={<Signup />} />
         <Route path='/signin' element={<SignIn />} />
+
         <Route path='/*' element={<NotFound />} />
 
       </Routes>

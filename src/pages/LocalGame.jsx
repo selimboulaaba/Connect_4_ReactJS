@@ -34,10 +34,12 @@ function LocalGame() {
   const handleClick = (colIndex) => {
     const pos = getDownPos(colIndex);
     if ((p1.indexOf(pos) === -1) && (p2.indexOf(pos) === -1)) {
-      if (p1.length === p2.length) {
-        setP1((prevP1) => [...prevP1, pos]);
-      } else {
-        setP2((prevP2) => [...prevP2, pos]);
+      if (+pos[0] >= 0) {
+        if (p1.length === p2.length) {
+          setP1((prevP1) => [...prevP1, pos]);
+        } else {
+          setP2((prevP2) => [...prevP2, pos]);
+        }
       }
     }
   }

@@ -57,7 +57,7 @@ function OnlineMenu() {
             {alert && <Alert message={alert} />}
             <div>
                 {loading
-                    ? <Loading />
+                    ? <Loading  w="6" h="6"/>
                     : <Link onClick={(event) => event.preventDefault()}><button onClick={create} className="w-[90%] md:w-[70%] lg:w-[50%] m-auto ">Create a New Game</button></Link>
                 }
             </div>
@@ -78,7 +78,7 @@ function OnlineMenu() {
             </div>
             <div>
                 {loading
-                    ? <Loading />
+                    ? <Loading  w="6" h="6"/>
                     : <Link onClick={(event) => event.preventDefault()}><button onClick={join} className="w-[90%] md:w-[70%] lg:w-[50%] m-auto ">Join a Game</button></Link>
                 }
             </div>
