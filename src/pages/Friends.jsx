@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getUserByUsername, handleFriend } from '../services/user.service';
 import { setUser } from '../store/actions/userActions';
 import { MdDelete } from "react-icons/md";
+import { inviteFriend } from '../services/game.service';
 
 function Friends() {
 
@@ -58,13 +59,16 @@ function Friends() {
       })
   }
 
-  const inviteToGame = () => {
-
+  const inviteToGame = (friendId) => {
+    inviteFriend(user._id, friendId)
+      .then(response => {
+        console.log(response.data.game)
+      })
   }
 
   return (
     <div className="grid gap-6 mb-6 mt-16 border-[#646cff] border-[1px] rounded-xl py-20">
-              <h1 className='font-bold text-[#646cff] mb-10 underline text-nowrap text-4xl sm:text-6xl'>Friends</h1>
+      <h1 className='font-bold text-[#646cff] mb-10 underline text-nowrap text-4xl sm:text-6xl'>Friends</h1>
       <form>
         <div className='grid'>
           <input
@@ -78,12 +82,12 @@ function Friends() {
         </div>
       </form>
       {friendsLoading
-        ? <Loading  w="6" h="6"/>
+        ? <Loading w="6" h="6" />
         : users?.map(user => (
           <div className="grid grid-cols-7 gap-3 mx-5 md:mx-12" key={user._id}>
             <Link onClick={(event) => event.preventDefault()} className='col-span-7'>
               {friendLoading === user._id
-                ? <button disabled className='w-full'><Loading className="mx-3" /></button>
+                ? <button disabled className='w-full'><Loading className="mx-3" w="6" h="6" /></button>
                 : <button onClick={() => handleFriends(user._id)} type='submit' className="w-full text-nowrap">Add Friend: <p className='text-2xl inline'>{user.username}</p></button>
               }
             </Link>
@@ -92,12 +96,12 @@ function Friends() {
       <div className='border-[1px] rounded-xl border-[#646cff] mx-12'></div>
       {user.friends?.length === 0 && <p className='text-[#646cff] font-semibold'>Lonely ? Add some Friends.</p>}
       {loading
-        ? <Loading  w="6" h="6"/>
+        ? <Loading w="6" h="6" />
         : user.friends?.map(friend => (
           <div key={friend._id}>
             <div className='flex gap-3 mx-5 md:mx-12'>
               <Link className='w-full' onClick={(event) => event.preventDefault()}>
-                <button onClick={() => inviteToGame(friend._id)} className="w-full">Invite {friend.username}</button>
+                <button onClick={() => inviteToGame(friend._id)} className="w-full">Invite: {friend.username}</button>
               </Link>
               <Link className='' onClick={(event) => event.preventDefault()}>
                 {friendLoading === friend._id

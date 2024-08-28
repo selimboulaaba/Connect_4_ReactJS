@@ -18,3 +18,9 @@ export const joinGame = async (id) => {
 export const updateMove = async (id, body) => {
     return await axios.put(url + "/move/" + id, body, { headers: auth.header() })
 }
+
+export const inviteFriend = async (p1, p2) => {
+    return await axios.post(url + "/invite", { p1, p2 }, { headers: auth.header() })
+}
+
+

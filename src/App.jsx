@@ -20,6 +20,7 @@ import NotFound from './pages/NotFound'
 import Profile from './pages/Profile'
 import AuthGuard from './components/AuthGuard'
 import ScrollToTop from './components/ScrollToTop'
+import GuestGuard from './components/GuestGuard'
 
 function App() {
 
@@ -57,6 +58,10 @@ function App() {
       dispatch(setGame(data.newGame));
     });
 
+    socket.on('inviteFriend', (data) => {
+      console.log(data.newGame);
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -80,8 +85,10 @@ function App() {
           <Route path='/friends' element={<Friends />} />
         </Route>
 
-        <Route path='/signup' element={<Signup />} />
-        <Route path='/signin' element={<SignIn />} />
+        <Route element={<GuestGuard />}>
+          <Route path='/signup' element={<Signup />} />
+          <Route path='/signin' element={<SignIn />} />
+        </Route>
 
         <Route path='/*' element={<NotFound />} />
 
