@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Winner from '../components/Winner'
+import useSound from 'use-sound'
+import SUI from '../assets/siu.mp3'
 
 function LocalGame() {
 
@@ -95,6 +97,13 @@ function LocalGame() {
       }
     }
   }, [p1, p2])
+
+  const [play] = useSound(SUI);
+  useEffect(() => {
+    if (winner) {
+      play()
+    }
+  }, [winner])
 
   return (
     <div className='border-[#646cff] border-[1px] rounded-xl pb-16 lg:px-20 mt-14'>

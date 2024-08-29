@@ -7,6 +7,8 @@ import { FaRegCopy } from "react-icons/fa";
 import Loading from '../components/Loading'
 import { setGame, nextGame, updateMoves, updateWinner, setWinner } from '../store/actions/gameActions';
 import { FaCircle } from "react-icons/fa";
+import useSound from 'use-sound';
+import SUI from '../assets/siu.mp3'
 
 function OnlineGameBoard() {
 
@@ -180,6 +182,13 @@ function OnlineGameBoard() {
     return res;
   }
 
+  const [play] = useSound(SUI);
+  useEffect(() => {
+    if (winner) {
+      play()
+    }
+  }, [winner])
+
   return (
     <div className="border-[#646cff] border-[1px] rounded-xl pb-20 pt-4 lg:px-20 mt-14">
       {loading
@@ -188,10 +197,13 @@ function OnlineGameBoard() {
           {username === game.p1.username && <div onClick={copyToClipboard} className='flex text-sm sm:text-md items-center ms-auto justify-end cursor-pointer border-b-2 w-fit hover:rounded-lg border-transparent hover:border-[#646cff] text-[#646cff] p-3'>Copy this and send to your Friend <FaRegCopy className='ms-3 w-6 h-6 fill-[#646cff]' /></div>}
           {game.p2
             ? <>
-              <div className="text-[#646cff] font-bold text-5xl mt-14 mb-10">
+              <div className="text-[#646cff] font-bold text-3xl md:text-5xl mt-14">
                 <FaCircle className='fill-blue-500 h-4 inline-block' />
-                {game.p1.username} {game.score.p1} - {game.score.p2} {game.p2.username}
+                {game.p1.username} - {game.p2.username}
                 <FaCircle className='fill-red-500 h-4 inline-block' />
+              </div>
+              <div className="text-[#646cff] font-bold text-3xl md:text-5xl mb-10">
+                {game.score.p1} - {game.score.p2}
               </div>
               {!!winner && username === game.p1.username && <button className='mb-5' onClick={next}>Next</button>}
               {[...Array(rows)].map((_, rowIndex) => (
@@ -206,7 +218,7 @@ function OnlineGameBoard() {
                   ))}
                 </div>
               ))}
-              {!winner && <div>Your {
+              {!winner && <div className='mt-10'>Your {
                 (username === game.p1.username && !game.p1LastMove)
                   ||
                   (username === game.p2.username && game.p1LastMove)

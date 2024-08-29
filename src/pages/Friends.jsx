@@ -7,6 +7,7 @@ import { getUserByUsername, handleFriend } from '../services/user.service';
 import { setUser } from '../store/actions/userActions';
 import { MdDelete } from "react-icons/md";
 import { inviteFriend } from '../services/game.service';
+import { toast } from 'react-toastify';
 
 function Friends() {
 
@@ -17,6 +18,7 @@ function Friends() {
   const [friendsLoading, setFriendsLoading] = useState(false)
   const [users, setUsers] = useState([])
   const [friendLoading, setloading] = useState(null)
+  const [inviteLoading, setInviteLoading] = useState(null)
 
   const canInvite = (u) => {
     if (u._id === user._id) {
@@ -60,9 +62,13 @@ function Friends() {
   }
 
   const inviteToGame = (friendId) => {
+    setInviteLoading(friendId)
     inviteFriend(user._id, friendId)
       .then(response => {
-        console.log(response.data.game)
+        toast.success('The invite has been sent.');
+      })
+      .finally(() => {
+        setInviteLoading(null)
       })
   }
 
@@ -101,7 +107,10 @@ function Friends() {
           <div key={friend._id}>
             <div className='flex gap-3 mx-5 md:mx-12'>
               <Link className='w-full' onClick={(event) => event.preventDefault()}>
-                <button onClick={() => inviteToGame(friend._id)} className="w-full">Invite: {friend.username}</button>
+                {inviteLoading === friend._id
+                  ? <button disabled className='w-full'><Loading className="mx-3" w="6" h="6" /></button>
+                  : <button onClick={() => inviteToGame(friend._id)} className="w-full">Invite: {friend.username}</button>
+                }
               </Link>
               <Link className='' onClick={(event) => event.preventDefault()}>
                 {friendLoading === friend._id
