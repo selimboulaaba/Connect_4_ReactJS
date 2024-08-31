@@ -75,9 +75,9 @@ function LocalGame() {
           count++;
           if (count === 4) {
             if (p1.length === p2.length) {
-              setWinner("Player 2 is the Winner!")
+              setWinner("Player 2\nis the Winner!")
             } else {
-              setWinner("Player 1 is the Winner!")
+              setWinner("Player 1\nis the Winner!")
             }
           }
         }

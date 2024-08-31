@@ -140,7 +140,7 @@ function OnlineGameBoard() {
           if (count === 4) {
             if (!game.p1LastMove) {
               if (setWin)
-                dispatch(setWinner(game.p2.username + " is the Winner!"))
+                dispatch(setWinner(game.p2.username + "\nis the Winner!"))
               if (update) {
                 dispatch(updateWinner("p2_Moves", [...game.p2_Moves, pos], "p2"))
                 updateTurn({
@@ -153,7 +153,7 @@ function OnlineGameBoard() {
               }
             } else {
               if (setWin)
-                dispatch(setWinner(game.p1.username + " is the Winner!"))
+                dispatch(setWinner(game.p1.username + "\nis the Winner!"))
               if (update) {
                 dispatch(updateWinner("p1_Moves", [...game.p1_Moves, pos], "p1"))
                 updateTurn({
@@ -195,6 +195,7 @@ function OnlineGameBoard() {
         ? <Loading className="pt-28 pb-12 px-[45%]" w="8" h="8" />
         : <>
           {username === game.p1.username && <div onClick={copyToClipboard} className='flex text-sm sm:text-md items-center ms-auto justify-end cursor-pointer border-b-2 w-fit hover:rounded-lg border-transparent hover:border-[#646cff] text-[#646cff] p-3'>Copy this and send to your Friend <FaRegCopy className='ms-3 w-6 h-6 fill-[#646cff]' /></div>}
+          {!!winner && username === game.p1.username && <button className='mb-5' onClick={next}>Next</button>}
           {game.p2
             ? <>
               <div className="text-[#646cff] font-bold text-3xl md:text-5xl mt-14">
@@ -205,7 +206,6 @@ function OnlineGameBoard() {
               <div className="text-[#646cff] font-bold text-3xl md:text-5xl mb-10">
                 {game.score.p1} - {game.score.p2}
               </div>
-              {!!winner && username === game.p1.username && <button className='mb-5' onClick={next}>Next</button>}
               {[...Array(rows)].map((_, rowIndex) => (
                 <div key={rowIndex} className='flex justify-center items-center px-3'>
                   {[...Array(columns)].map((_, colIndex) => (
