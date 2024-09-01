@@ -39,6 +39,7 @@ function OnlineGameBoard() {
     if (game.p1_Moves.length + game.p2_Moves.length === 42) {
       dispatch(setWinner("It's a Draw!"))
     } else {
+      setWinnerSet([])
       dispatch(setWinner(null))
       check(game.p1_Moves, false, null, true)
       check(game.p2_Moves, false, null, true)
@@ -120,8 +121,12 @@ function OnlineGameBoard() {
 
   const color = (pos) => {
     if (game.p1_Moves.indexOf(pos) != -1) {
+      if (winnerSet.indexOf(pos) != -1)
+        return "border-opacity-50 border-blue-500 bg-blue-300"
       return "border-opacity-50 border-blue-700 bg-blue-500"
     } else if (game.p2_Moves.indexOf(pos) != -1) {
+      if (winnerSet.indexOf(pos) != -1)
+        return "border-opacity-50 border-red-500 bg-red-300"
       return "border-opacity-50 border-red-700 bg-red-500"
     } else {
       return "border-opacity-20 border-white"
@@ -144,6 +149,7 @@ function OnlineGameBoard() {
           if (count === 4) {
             if (!game.p1LastMove) {
               if (setWin) {
+                setWinnerSet(currentWinnerSet)
                 dispatch(setWinner(game.p2.username + "\nis the Winner!"))
               }
               if (update) {
@@ -162,6 +168,7 @@ function OnlineGameBoard() {
               }
             } else {
               if (setWin) {
+                setWinnerSet(currentWinnerSet)
                 dispatch(setWinner(game.p1.username + "\nis the Winner!"))
               }
               if (update) {
