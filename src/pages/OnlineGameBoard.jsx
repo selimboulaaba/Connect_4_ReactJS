@@ -19,6 +19,7 @@ function OnlineGameBoard() {
 
   const { id } = useParams();
   const [loading, setLoading] = useState(true)
+  const [winnerSet, setWinnerSet] = useState([])
 
   const updateTurn = async (body) => {
     await updateMove(id, body)
@@ -60,6 +61,7 @@ function OnlineGameBoard() {
     })
     dispatch(nextGame())
     dispatch(setWinner(null))
+    setWinnerSet([])
   }
 
   const copyToClipboard = () => {
@@ -130,6 +132,7 @@ function OnlineGameBoard() {
     if (list.indexOf(i + "" + j) !== -1) {
       for (const [dx, dy] of directions) {
         let count = 1;
+        let currentWinnerSet = [i + "" + j]
         for (let k = 1; k < 4; k++) {
           const newI = i + k * dx
           const newJ = j + k * dy
@@ -137,12 +140,18 @@ function OnlineGameBoard() {
             break;
           }
           count++;
+          currentWinnerSet.push(newI + "" + newJ)
           if (count === 4) {
             if (!game.p1LastMove) {
-              if (setWin)
+              if (setWin) {
                 dispatch(setWinner(game.p2.username + "\nis the Winner!"))
+              }
               if (update) {
-                dispatch(updateWinner("p2_Moves", [...game.p2_Moves, pos], "p2"))
+                if (username === game.p1.username) {
+                  dispatch(updateMoves("p2_Moves", [...game.p2_Moves, pos]))
+                } else {
+                  dispatch(updateMoves("p1_Moves", [...game.p1_Moves, pos]))
+                }
                 updateTurn({
                   next: false,
                   score: true,
@@ -152,10 +161,15 @@ function OnlineGameBoard() {
                 })
               }
             } else {
-              if (setWin)
+              if (setWin) {
                 dispatch(setWinner(game.p1.username + "\nis the Winner!"))
+              }
               if (update) {
-                dispatch(updateWinner("p1_Moves", [...game.p1_Moves, pos], "p1"))
+                if (username === game.p1.username) {
+                  dispatch(updateMoves("p2_Moves", [...game.p2_Moves, pos]))
+                } else {
+                  dispatch(updateMoves("p1_Moves", [...game.p1_Moves, pos]))
+                }
                 updateTurn({
                   next: false,
                   score: true,

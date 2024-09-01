@@ -8,6 +8,7 @@ function LocalGame() {
   const [p1, setP1] = useState([])
   const [p2, setP2] = useState([])
   const [winner, setWinner] = useState()
+  const [winnerSet, setWinnerSet] = useState([])
 
   const rows = 6
   const columns = 7
@@ -48,8 +49,12 @@ function LocalGame() {
 
   const color = (pos) => {
     if (p1.indexOf(pos) != -1) {
+      if (winnerSet.indexOf(pos) != -1)
+        return "border-opacity-50 border-blue-500 bg-blue-300"
       return "border-opacity-50 border-blue-700 bg-blue-500"
     } else if (p2.indexOf(pos) != -1) {
+      if (winnerSet.indexOf(pos) != -1)
+        return "border-opacity-50 border-red-500 bg-red-300"
       return "border-opacity-50 border-red-700 bg-red-500"
     } else {
       return "border-opacity-20 border-white"
@@ -60,12 +65,14 @@ function LocalGame() {
     setP1([])
     setP2([])
     setWinner(null)
+    setWinnerSet([])
   }
 
   const checkWinner = (i, j, list) => {
     if (list.indexOf(i + "" + j) !== -1) {
       for (const [dx, dy] of directions) {
         let count = 1;
+        let currentWinnerSet = [i + "" + j]
         for (let k = 1; k < 4; k++) {
           const newI = i + k * dx
           const newJ = j + k * dy
@@ -73,7 +80,9 @@ function LocalGame() {
             break;
           }
           count++;
+          currentWinnerSet.push(newI + "" + newJ)
           if (count === 4) {
+            setWinnerSet(currentWinnerSet)
             if (p1.length === p2.length) {
               setWinner("Player 2\nis the Winner!")
             } else {
