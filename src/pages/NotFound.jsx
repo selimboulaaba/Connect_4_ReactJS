@@ -2,7 +2,12 @@ import React from 'react'
 
 function NotFound() {
   return (
-    <h1 className='font-bold text-[#646cff] text-7xl mb-10'>404 Page Not Found</h1>
+    <div className='error-body'>
+      <div className="error-container">
+        <h1 className="error-title">404</h1>
+        <p className="error-text">Oops! It seems like you are lost... <span className="animate-blink">????</span></p>
+      </div>
+    </div>
   )
 }
 

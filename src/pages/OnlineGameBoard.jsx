@@ -122,11 +122,11 @@ function OnlineGameBoard() {
   const color = (pos) => {
     if (game.p1_Moves.indexOf(pos) != -1) {
       if (winnerSet.indexOf(pos) != -1)
-        return "border-opacity-50 border-blue-500 bg-blue-300"
+        return "border-blue-500 bg-green-500"
       return "border-opacity-50 border-blue-700 bg-blue-500"
     } else if (game.p2_Moves.indexOf(pos) != -1) {
       if (winnerSet.indexOf(pos) != -1)
-        return "border-opacity-50 border-red-500 bg-red-300"
+        return "border-red-500 bg-green-500"
       return "border-opacity-50 border-red-700 bg-red-500"
     } else {
       return "border-opacity-20 border-white"

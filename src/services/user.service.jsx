@@ -26,3 +26,7 @@ export const handleFriend = async (id) => {
 export const updateProfile = async (id, body) => {
     return await axios.put(url + "/" + id, body, { headers: auth.header() })
 }
+
+export const updateUserExperience = async (id, body) => {
+    return await axios.put(url + "/experience/" + id, body, { headers: auth.header() })
+}

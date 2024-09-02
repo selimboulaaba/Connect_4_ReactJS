@@ -1,8 +1,10 @@
-import { START_LOADING, STOP_LOADING, SET_USER, SIGN_IN, SIGN_OUT } from '../actions/userActions';
+import { START_LOADING, STOP_LOADING, SET_USER, SIGN_IN, SIGN_OUT, UPDATE_EXPERIENCE } from '../actions/userActions';
 
 const initialState = {
   user: {
-    username: ""
+    username: "",
+    xp: 0,
+    lvl: 1
   },
   signedIn: false,
   token: localStorage.getItem('token'),
@@ -44,6 +46,15 @@ const userReducer = (state = initialState, action) => {
         signedIn: true,
         loading: false,
       };
+      case UPDATE_EXPERIENCE:
+        return {
+          ...state,
+          user: {
+            ...state.user,
+            xp: action.payload.xp,
+            lvl: action.payload.lvl,
+          },
+        };
     default:
       return state;
   }

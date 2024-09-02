@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import InviteToGameModal from './InviteToGameModal';
 import { useDispatch, useSelector } from 'react-redux'
-import { getUser } from '../services/user.service'
-import { setUser, startLoading } from '../store/actions/userActions'
+import { getUser, updateUserExperience } from '../services/user.service'
+import { setUser, startLoading, updateExperience } from '../store/actions/userActions'
 import { io } from 'socket.io-client';
 import { nextGame, setGame } from '../store/actions/gameActions'
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import GameAcceptedModal from './GameAcceptedModal';
 
 function Socket() {
-    const navigate = useNavigate();
 
-    const username = useSelector(state => state.user.user.username);
+    const user = useSelector(state => state.user.user);
     const dispatch = useDispatch();
 
     const [inviteModalOpen, setInviteModalOpen] = useState(false);
@@ -34,13 +32,13 @@ function Socket() {
                 .catch(error => {
                 });
         }
-    }, [username]);
+    }, [user.username]);
 
     const socket = io(import.meta.env.VITE_API_URL)
     useEffect(() => {
         socket.on('connect', () => {
-            if (username) {
-                socket.emit('register', username);
+            if (user.username) {
+                socket.emit('register', user.username);
             }
         });
 
@@ -71,7 +69,8 @@ function Socket() {
         return () => {
             socket.disconnect();
         };
-    }, [username]);
+    }, [user.username]);
+
     return (
         <>
             <InviteToGameModal open={inviteModalOpen} closeModal={closeInviteModal} inviteData={inviteData} />

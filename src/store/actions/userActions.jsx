@@ -3,6 +3,7 @@ export const SIGN_OUT = 'SIGN_OUT';
 export const SET_USER = 'SET_USER';
 export const START_LOADING = 'START_LOADING';
 export const STOP_LOADING = 'STOP_LOADING';
+export const UPDATE_EXPERIENCE = 'UPDATE_EXPERIENCE';
 
 export const startLoading = () => {
   return {
@@ -35,3 +36,11 @@ export const setUser = (user) => {
     payload: user,
   };
 };
+
+export const updateExperience = (payload) => {
+  return {
+    type: UPDATE_EXPERIENCE,
+    payload: payload,
+  };
+};
+
