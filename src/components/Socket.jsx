@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import InviteToGameModal from './InviteToGameModal';
 import { useDispatch, useSelector } from 'react-redux'
 import { getUser } from '../services/user.service'
-import { setUser, startLoading, updateExperience } from '../store/actions/userActions'
+import { setUser, signOut, startLoading, updateExperience } from '../store/actions/userActions'
 import { io } from 'socket.io-client';
 import { nextGame, setGame } from '../store/actions/gameActions'
 import { toast } from 'react-toastify';
@@ -30,6 +30,7 @@ function Socket() {
                     dispatch(setUser(response.data.user));
                 })
                 .catch(error => {
+                    dispatch(signOut())
                 });
         }
     }, [user.username]);
