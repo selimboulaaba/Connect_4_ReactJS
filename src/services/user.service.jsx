@@ -27,3 +27,6 @@ export const updateProfile = async (id, body) => {
     return await axios.put(url + "/" + id, body, { headers: auth.header() })
 }
 
+export const getLeaderBoard = async () => {
+    return await axios.get(url + "/leaderboard", { headers: auth.header() })
+}
