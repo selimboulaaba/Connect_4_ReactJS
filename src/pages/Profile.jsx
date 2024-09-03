@@ -54,13 +54,15 @@ function Profile() {
   const calculateExperienceProgress = () => {
     if (connectedUser.user.lvl && connectedUser.user.xp) {
       let oldExp = 0;
-      let maxExp = 1000;
-      if (connectedUser.user.lvl > 1) {
-        // const level = Math.floor((Math.log(connectedUser.user.xp / 250) / Math.log(2)) + 2);
-        oldExp = 250 * 2 ** (connectedUser.user.lvl - 2)
-        maxExp = 250 * 2 ** (connectedUser.user.lvl - 1)
+      let maxExp = 100;
+      if (connectedUser.user.lvl === 2) {
+        oldExp = 100
+        maxExp = 250
+      } else if (connectedUser.user.lvl > 2) {
+        oldExp = 250 * 2 ** (connectedUser.user.lvl - 3)
+        maxExp = 250 * 2 ** (connectedUser.user.lvl - 2)
       }
-      return ((connectedUser.user.xp - oldExp) / maxExp) * 100
+      return ((connectedUser.user.xp - oldExp) / (maxExp - oldExp)) * 100
     }
   }
 
@@ -82,7 +84,7 @@ function Profile() {
               </div>
             </div>
             <div className='mt-28 md:mt-0 mx-auto md:col-span-5 col-span-12'>
-              <CircularProgressbarWithChildren 
+              <CircularProgressbarWithChildren
                 value={calculateExperienceProgress()}
                 styles={{
                   // Customize the root svg element

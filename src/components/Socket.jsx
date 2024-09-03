@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import InviteToGameModal from './InviteToGameModal';
 import { useDispatch, useSelector } from 'react-redux'
-import { getUser, updateUserExperience } from '../services/user.service'
+import { getUser } from '../services/user.service'
 import { setUser, startLoading, updateExperience } from '../store/actions/userActions'
 import { io } from 'socket.io-client';
 import { nextGame, setGame } from '../store/actions/gameActions'
@@ -64,6 +64,10 @@ function Socket() {
 
         socket.on('inviteDeclined', (data) => {
             toast.info(data.username + " Declined the Invite.")
+        });
+
+        socket.on('updateExperience', (data) => {
+            dispatch(updateExperience(data))
         });
 
         return () => {

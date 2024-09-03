@@ -53,36 +53,38 @@ function OnlineMenu() {
         }
     }
     return (
-        <div className="grid gap-6 mb-6 mt-12 border-[#646cff] border-[1px] rounded-xl py-20">
-            {alert && <Alert message={alert} />}
-            <div>
-                {loading
-                    ? <Loading  w="6" h="6"/>
-                    : <Link onClick={(event) => event.preventDefault()}><button onClick={create} className="w-[90%] md:w-[70%] lg:w-[50%] m-auto ">Create a New Game</button></Link>
-                }
+        <>
+            <div className="grid gap-6 mb-6 mt-12 border-[#646cff] border-[1px] rounded-xl py-20">
+                {alert && <Alert message={alert} />}
+                <div>
+                    {loading
+                        ? <Loading w="6" h="6" />
+                        : <Link onClick={(event) => event.preventDefault()}><button onClick={create} className="w-[90%] md:w-[70%] lg:w-[50%] m-auto ">Create a New Game</button></Link>
+                    }
+                </div>
+                <div className='font-bold grid grid-cols-11 sm:grid-cols-9 items-center px-6'>
+                    <div className='border-[1px] rounded-xl col-span-4 sm:col-span-4 border-[#646cff]'></div>
+                    <div className='text-3xl mb-[5px] font-bold col-span-3 sm:col-span-1 text-[#646cff] text-center'>OR</div>
+                    <div className='border-[1px] rounded-xl col-span-4 sm:col-span-4 border-[#646cff]'></div>
+                </div>
+                <div>
+                    <input
+                        type="text"
+                        value={id}
+                        onChange={(event) => setId(event.target.value)}
+                        onClick={handlePaste}
+                        className="w-[90%] md:w-[70%] lg:w-[50%] m-auto text-center border text-sm rounded-lg block p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Insert Game Id Here *"
+                    />
+                </div>
+                <div>
+                    {loading
+                        ? <Loading w="6" h="6" />
+                        : <Link onClick={(event) => event.preventDefault()}><button onClick={join} className="w-[90%] md:w-[70%] lg:w-[50%] m-auto ">Join a Game</button></Link>
+                    }
+                </div>
             </div>
-            <div className='font-bold grid grid-cols-11 sm:grid-cols-9 items-center px-6'>
-                <div className='border-[1px] rounded-xl col-span-4 sm:col-span-4 border-[#646cff]'></div>
-                <div className='text-3xl mb-[5px] font-bold col-span-3 sm:col-span-1 text-[#646cff] text-center'>OR</div>
-                <div className='border-[1px] rounded-xl col-span-4 sm:col-span-4 border-[#646cff]'></div>
-            </div>
-            <div>
-                <input
-                    type="text"
-                    value={id}
-                    onChange={(event) => setId(event.target.value)}
-                    onClick={handlePaste}
-                    className="w-[90%] md:w-[70%] lg:w-[50%] m-auto text-center border text-sm rounded-lg block p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Insert Game Id Here *"
-                />
-            </div>
-            <div>
-                {loading
-                    ? <Loading  w="6" h="6"/>
-                    : <Link onClick={(event) => event.preventDefault()}><button onClick={join} className="w-[90%] md:w-[70%] lg:w-[50%] m-auto ">Join a Game</button></Link>
-                }
-            </div>
-        </div>
+        </>
     )
 }
 

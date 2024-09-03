@@ -17,6 +17,7 @@ import GuestGuard from './components/GuestGuard'
 import Socket from './components/Socket'
 import { Bounce, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css';
+import LeaderBoard from './pages/LeaderBoard'
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           </Route>
           <Route path='/profile' element={<Profile />} />
           <Route path='/friends' element={<Friends />} />
+          <Route path='/leaderboard' element={<LeaderBoard />} />
         </Route>
 
         <Route element={<GuestGuard />}>

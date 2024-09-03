@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import Loading from '../components/Loading'
-import Alert from '../components/Alert'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserByUsername, handleFriend } from '../services/user.service';
@@ -73,56 +72,62 @@ function Friends() {
   }
 
   return (
-    <div className="grid gap-6 mb-6 mt-16 border-[#646cff] border-[1px] rounded-xl py-20">
-      <h1 className='font-bold text-[#646cff] mb-10 underline text-nowrap text-4xl sm:text-6xl'>Friends</h1>
-      <form>
-        <div className='grid'>
-          <input
-            type="text"
-            value={friendId}
-            onChange={searchFriends}
-            className="w-[90%] md:w-[70%] lg:w-[50%] m-auto col-span-5 text-center border text-sm rounded-lg block p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Add Friend with Username"
-            autoFocus
-          />
-        </div>
-      </form>
-      {friendsLoading
-        ? <Loading w="6" h="6" />
-        : users?.map(user => (
-          <div className="grid grid-cols-7 gap-3 mx-5 md:mx-12" key={user._id}>
-            <Link onClick={(event) => event.preventDefault()} className='col-span-7'>
-              {friendLoading === user._id
-                ? <button disabled className='w-full'><Loading className="mx-3" w="6" h="6" /></button>
-                : <button onClick={() => handleFriends(user._id)} type='submit' className="w-full text-nowrap">Add Friend: <p className='text-2xl inline'>{user.username}</p></button>
-              }
-            </Link>
+    <>
+      <Link to="/leaderboard">
+        <button className="mt-16 mb-2 text-xl w-[90%] md:w-[70%] lg:w-[50%] m-auto">LeaderBoard</button>
+      </Link>
+
+      <div className="grid gap-6 mb-6 border-[#646cff] border-[1px] rounded-xl py-20">
+        <h1 className='font-bold text-[#646cff] mb-10 underline text-nowrap text-4xl sm:text-6xl'>Friends</h1>
+        <form>
+          <div className='grid'>
+            <input
+              type="text"
+              value={friendId}
+              onChange={searchFriends}
+              className="w-[90%] md:w-[70%] lg:w-[50%] m-auto col-span-5 text-center border text-sm rounded-lg block p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Add Friend with Username"
+              autoFocus
+            />
           </div>
-        ))}
-      <div className='border-[1px] rounded-xl border-[#646cff] mx-12'></div>
-      {user.friends?.length === 0 && <p className='text-[#646cff] font-semibold'>Lonely ? Add some Friends.</p>}
-      {loading
-        ? <Loading w="6" h="6" />
-        : user.friends?.map(friend => (
-          <div key={friend._id}>
-            <div className='flex gap-3 mx-5 md:mx-12'>
-              <Link className='w-full' onClick={(event) => event.preventDefault()}>
-                {inviteLoading === friend._id
+        </form>
+        {friendsLoading
+          ? <Loading w="6" h="6" />
+          : users?.map(user => (
+            <div className="grid grid-cols-7 gap-3 mx-5 md:mx-12" key={user._id}>
+              <Link onClick={(event) => event.preventDefault()} className='col-span-7'>
+                {friendLoading === user._id
                   ? <button disabled className='w-full'><Loading className="mx-3" w="6" h="6" /></button>
-                  : <button onClick={() => inviteToGame(friend._id)} className="w-full">Invite: {friend.username}</button>
-                }
-              </Link>
-              <Link className='' onClick={(event) => event.preventDefault()}>
-                {friendLoading === friend._id
-                  ? <button className='w-full h-full py-2 px-4' disabled><Loading w="6" h="6" /></button>
-                  : <button className='w-full h-full py-2 px-4' onClick={() => handleFriends(friend._id)}><MdDelete className='h-6 w-6' /></button>
+                  : <button onClick={() => handleFriends(user._id)} type='submit' className="w-full text-nowrap">Add Friend: <p className='text-2xl inline'>{user.username}</p></button>
                 }
               </Link>
             </div>
-          </div>
-        ))
-      }
-    </div>
+          ))}
+        <div className='border-[1px] rounded-xl border-[#646cff] mx-12'></div>
+        {user.friends?.length === 0 && <p className='text-[#646cff] font-semibold'>Lonely ? Add some Friends.</p>}
+        {loading
+          ? <Loading w="6" h="6" />
+          : user.friends?.map(friend => (
+            <div key={friend._id}>
+              <div className='flex gap-3 mx-5 md:mx-12'>
+                <Link className='w-full' onClick={(event) => event.preventDefault()}>
+                  {inviteLoading === friend._id
+                    ? <button disabled className='w-full'><Loading className="mx-3" w="6" h="6" /></button>
+                    : <button onClick={() => inviteToGame(friend._id)} className="w-full">Invite: {friend.username}</button>
+                  }
+                </Link>
+                <Link className='' onClick={(event) => event.preventDefault()}>
+                  {friendLoading === friend._id
+                    ? <button className='w-full h-full py-2 px-4' disabled><Loading w="6" h="6" /></button>
+                    : <button className='w-full h-full py-2 px-4' onClick={() => handleFriends(friend._id)}><MdDelete className='h-6 w-6' /></button>
+                  }
+                </Link>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </>
   )
 }
 

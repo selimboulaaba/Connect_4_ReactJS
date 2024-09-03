@@ -26,6 +26,12 @@ function OnlineGameBoard() {
   }
 
   useEffect(() => {
+    if (winner === null) {
+      setWinnerSet([])
+    }
+  }, [winner])
+
+  useEffect(() => {
     if (id) {
       getGame(id)
         .then(response => {
@@ -215,7 +221,7 @@ function OnlineGameBoard() {
       {loading
         ? <Loading className="pt-28 pb-12 px-[45%]" w="8" h="8" />
         : <>
-          {username === game.p1.username && <div onClick={copyToClipboard} className='flex text-sm sm:text-md items-center ms-auto justify-end cursor-pointer border-b-2 w-fit hover:rounded-lg border-transparent hover:border-[#646cff] text-[#646cff] p-3'>Copy this and send to your Friend <FaRegCopy className='ms-3 w-6 h-6 fill-[#646cff]' /></div>}
+          {username === game.p1.username && <div onClick={copyToClipboard} className='flex text-sm sm:text-md items-center ms-auto justify-end cursor-pointer border-l-2 border-b-2 w-fit hover:rounded-lg border-transparent hover:border-[#646cff] text-[#646cff] p-3'>Copy this and send to your Friend <FaRegCopy className='ms-3 w-6 h-6 fill-[#646cff]' /></div>}
           {!!winner && username === game.p1.username && <button className='mb-5' onClick={next}>Next</button>}
           {game.p2
             ? <>
