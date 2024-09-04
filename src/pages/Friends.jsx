@@ -93,16 +93,19 @@ function Friends() {
         </form>
         {friendsLoading
           ? <Loading w="6" h="6" />
-          : users?.map(user => (
-            <div className="grid grid-cols-7 gap-3 mx-5 md:mx-12" key={user._id}>
-              <Link onClick={(event) => event.preventDefault()} className='col-span-7'>
-                {friendLoading === user._id
-                  ? <button disabled className='w-full'><Loading className="mx-3" w="6" h="6" /></button>
-                  : <button onClick={() => handleFriends(user._id)} type='submit' className="w-full text-nowrap">Add Friend: <p className='text-2xl inline'>{user.username}</p></button>
-                }
-              </Link>
-            </div>
-          ))}
+          : (users.length === 0 && friendId != '')
+            ? <p className='truncate mx-5'>There are no users for '{friendId}'</p>
+            : users?.map(user => (
+              <div className="grid grid-cols-7 gap-3 mx-5 md:mx-12" key={user._id}>
+                <Link onClick={(event) => event.preventDefault()} className='col-span-7'>
+                  {friendLoading === user._id
+                    ? <button disabled className='w-full'><Loading className="mx-3" w="6" h="6" /></button>
+                    : <button onClick={() => handleFriends(user._id)} type='submit' className="w-full text-nowrap">Add Friend: <p className='inline underline'>{user.username}</p> (Level {user.lvl})</button>
+                  }
+                </Link>
+              </div>
+            ))
+        }
         <div className='border-[1px] rounded-xl border-[#646cff] mx-12'></div>
         {user.friends?.length === 0 && <p className='text-[#646cff] font-semibold'>Lonely ? Add some Friends.</p>}
         {loading
@@ -113,7 +116,7 @@ function Friends() {
                 <Link className='w-full' onClick={(event) => event.preventDefault()}>
                   {inviteLoading === friend._id
                     ? <button disabled className='w-full'><Loading className="mx-3" w="6" h="6" /></button>
-                    : <button onClick={() => inviteToGame(friend._id)} className="w-full">Invite: {friend.username}</button>
+                    : <button onClick={() => inviteToGame(friend._id)} className="w-full">Invite: <p className='inline underline'>{friend.username}</p> (Level {friend.lvl})</button>
                   }
                 </Link>
                 <Link className='' onClick={(event) => event.preventDefault()}>
