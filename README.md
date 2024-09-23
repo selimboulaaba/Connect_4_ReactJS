@@ -32,3 +32,9 @@
 ## Project Link
 
 You can access the **Connect 4** application [here](https://connect-4-jade.vercel.app).
+
+## GitHub Repositories
+
+- **Frontend Repository**: [GitHub - Frontend](https://github.com/selimboulaaba/Connect_4_ReactJS)
+- **Backend Repository**: [GitHub - Backend](https://github.com/selimboulaaba/Connect_4_ExpressJS)
+
