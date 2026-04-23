@@ -19,8 +19,7 @@
     "react-redux": "^9.1.2",
     "react-toastify": "^10.0.5",
     "reactjs-popup": "^2.0.6",
-    "socket.io-client": "^4.7.5",
-    "use-sound": "^4.0.3"
+    "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

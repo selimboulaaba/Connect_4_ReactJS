@@ -1,4 +1,4 @@
-import { ADD_GAME, NEXT_GAME, SET_WINNER, UPDATE_MOVES, UPDATE_WINNER } from '../actions/gameActions';
+import { ADD_GAME, NEXT_GAME, SET_WINNER, UPDATE_MOVES, UPDATE_WINNER, SET_REMATCH_PENDING, CLEAR_REMATCH_PENDING } from '../actions/gameActions';
 
 const initialState = {
     game: {
@@ -9,7 +9,9 @@ const initialState = {
         p2_Moves: [],
         score: { p1: 0, p2: 0 }
     },
-    winner: null
+    winner: null,
+    rematchPending: false,
+    rematchRequester: null,
 };
 
 const gameReducer = (state = initialState, action) => {
@@ -53,6 +55,18 @@ const gameReducer = (state = initialState, action) => {
             return {
                 ...state,
                 winner: action.payload
+            };
+        case SET_REMATCH_PENDING:
+            return {
+                ...state,
+                rematchPending: true,
+                rematchRequester: action.payload,
+            };
+        case CLEAR_REMATCH_PENDING:
+            return {
+                ...state,
+                rematchPending: false,
+                rematchRequester: null,
             };
         default:
             return state;

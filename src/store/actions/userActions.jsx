@@ -4,6 +4,7 @@ export const SET_USER = 'SET_USER';
 export const START_LOADING = 'START_LOADING';
 export const STOP_LOADING = 'STOP_LOADING';
 export const UPDATE_EXPERIENCE = 'UPDATE_EXPERIENCE';
+export const UPDATE_STATS = 'UPDATE_STATS';
 
 export const startLoading = () => {
   return {
@@ -44,3 +45,4 @@ export const updateExperience = (payload) => {
   };
 };
 
+export const updateStats = (stats) => ({ type: UPDATE_STATS, payload: stats });

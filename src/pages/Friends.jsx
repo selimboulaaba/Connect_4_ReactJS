@@ -1,23 +1,41 @@
 import React, { useEffect, useState } from 'react'
 import Loading from '../components/Loading'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserByUsername, handleFriend } from '../services/user.service';
+import { getUserByUsername, handleFriend, getOnlineStatus, getUser, dismissPendingGameInvite } from '../services/user.service';
 import { setUser } from '../store/actions/userActions';
 import { MdDelete } from "react-icons/md";
-import { inviteFriend } from '../services/game.service';
+import { inviteFriend, getGame } from '../services/game.service';
 import { toast } from 'react-toastify';
+import { getSocket } from '../contexts/socketInstance';
 
 function Friends() {
 
   const { user, loading } = useSelector(state => state.user);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [friendId, setFriendId] = useState("")
   const [friendsLoading, setFriendsLoading] = useState(false)
   const [users, setUsers] = useState([])
   const [friendLoading, setloading] = useState(null)
   const [inviteLoading, setInviteLoading] = useState(null)
+  const [onlineStatus, setOnlineStatus] = useState({})
+
+  useEffect(() => {
+    getUser()
+      .then((res) => dispatch(setUser(res.data.user)))
+      .catch(() => {})
+  }, [dispatch])
+
+  useEffect(() => {
+    const fetchStatus = () => {
+      getOnlineStatus().then(res => setOnlineStatus(res.data.onlineFriends || {})).catch(() => {})
+    }
+    fetchStatus()
+    const interval = setInterval(fetchStatus, 10000)
+    return () => clearInterval(interval)
+  }, [])
 
   const canInvite = (u) => {
     if (u._id === user._id) {
@@ -71,6 +89,36 @@ function Friends() {
       })
   }
 
+  const pendingInvites = user.pendingGameInvites || []
+
+  const openInviteGame = async (inv) => {
+    const gameId = (inv.game && inv.game._id) || inv.game
+    if (!gameId) return
+    try {
+      const { data } = await getGame(gameId)
+      const socket = getSocket()
+      if (socket && data.game) socket.emit('acceptInvite', { newGame: data.game })
+    } catch {
+      toast.error('That game no longer exists. Removing invite.')
+      try {
+        const res = await dismissPendingGameInvite(gameId)
+        dispatch(setUser(res.data.user))
+      } catch { /* ignore */ }
+      return
+    }
+    navigate('/online/' + gameId)
+    getUser().then((res) => dispatch(setUser(res.data.user))).catch(() => {})
+  }
+
+  const removeInvite = async (gameId) => {
+    try {
+      const res = await dismissPendingGameInvite(gameId)
+      dispatch(setUser(res.data.user))
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Could not dismiss')
+    }
+  }
+
   return (
     <>
       <Link to="/leaderboard">
@@ -79,6 +127,30 @@ function Friends() {
 
       <div className="grid gap-6 mb-6 border-[#646cff] border-[1px] rounded-xl py-20">
         <h1 className='font-bold text-[#646cff] mb-10 underline text-nowrap text-4xl sm:text-6xl'>Friends</h1>
+
+        {pendingInvites.length > 0 && (
+          <div className='mx-5 md:mx-12 mb-8 border border-[#646cff]/50 rounded-xl p-4 bg-[#646cff]/5'>
+            <h2 className='text-[#646cff] font-bold text-lg mb-3'>Game invites</h2>
+            <ul className='space-y-2'>
+              {pendingInvites.map((inv) => {
+                const gid = (inv.game && inv.game._id) || inv.game
+                return (
+                  <li key={String(gid)} className='flex flex-wrap items-center justify-between gap-2 text-sm border-b border-gray-700 pb-2'>
+                    <span>
+                      <span className='text-gray-400'>From</span>{' '}
+                      <span className='font-semibold text-white'>{inv.fromUsername}</span>
+                    </span>
+                    <span className='flex gap-2'>
+                      <button type='button' onClick={() => openInviteGame(inv)}>Open game</button>
+                      <button type='button' className='text-red-400' onClick={() => removeInvite(gid)}>Dismiss</button>
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        )}
+
         <form>
           <div className='grid'>
             <input
@@ -116,7 +188,10 @@ function Friends() {
                 <Link className='w-full' onClick={(event) => event.preventDefault()}>
                   {inviteLoading === friend._id
                     ? <button disabled className='w-full'><Loading className="mx-3" w="6" h="6" /></button>
-                    : <button onClick={() => inviteToGame(friend._id)} className="w-full">Invite: <p className='inline underline'>{friend.username}</p> (Level {friend.lvl})</button>
+                    : <button onClick={() => inviteToGame(friend._id)} className="w-full">
+                        <span className={`inline-block w-2 h-2 rounded-full mr-2 ${onlineStatus?.[friend.username] ? 'bg-green-400' : 'bg-gray-500'}`} />
+                        Invite: <span className='underline'>{friend.username}</span> (Level {friend.lvl})
+                      </button>
                   }
                 </Link>
                 <Link className='' onClick={(event) => event.preventDefault()}>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import './App.css'
 import { BrowserRouter, Route, Routes, useNavigate } from 'react-router-dom'
 import LocalGame from './pages/LocalGame'
+import AIGame from './pages/AIGame'
 import Navbar from './components/NavBar'
 import Home from './pages/Home'
 import Signup from './pages/Signup'
@@ -18,6 +19,10 @@ import Socket from './components/Socket'
 import { Bounce, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css';
 import LeaderBoard from './pages/LeaderBoard'
+import SpectateList from './pages/SpectateList'
+import SpectateGame from './pages/SpectateGame'
+import DailyChallenge from './pages/DailyChallenge'
+import TournamentLobby from './pages/TournamentLobby'
 
 function App() {
   return (
@@ -28,6 +33,7 @@ function App() {
 
         <Route path='/' element={<Home />} />
         <Route path='/local' element={<LocalGame />} />
+        <Route path='/ai' element={<AIGame />} />
 
         <Route element={<AuthGuard />}>
           <Route path='/online' >
@@ -37,6 +43,11 @@ function App() {
           <Route path='/profile' element={<Profile />} />
           <Route path='/friends' element={<Friends />} />
           <Route path='/leaderboard' element={<LeaderBoard />} />
+          <Route path='/watch' element={<SpectateList />} />
+          <Route path='/watch/:id' element={<SpectateGame />} />
+          <Route path='/daily' element={<DailyChallenge />} />
+          <Route path='/tournament' element={<TournamentLobby />} />
+          <Route path='/tournament/:id' element={<TournamentLobby />} />
         </Route>
 
         <Route element={<GuestGuard />}>

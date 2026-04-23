@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import Winner from '../components/Winner'
-import useSound from 'use-sound'
-import SUI from '../assets/siu.mp3'
+import { useGameSound } from '../hooks/useGameSound'
+import { HiSpeakerWave, HiSpeakerXMark } from 'react-icons/hi2'
+import { boardOuter, boardRow, boardCol, pieceClass } from '../game/boardLayout'
 
 function LocalGame() {
 
@@ -9,6 +10,8 @@ function LocalGame() {
   const [p2, setP2] = useState([])
   const [winner, setWinner] = useState()
   const [winnerSet, setWinnerSet] = useState([])
+  const [lastDroppedPos, setLastDroppedPos] = useState(null)
+  const [hoveredCol, setHoveredCol] = useState(null)
 
   const rows = 6
   const columns = 7
@@ -38,6 +41,7 @@ function LocalGame() {
     const pos = getDownPos(colIndex);
     if ((p1.indexOf(pos) === -1) && (p2.indexOf(pos) === -1)) {
       if (+pos[0] >= 0) {
+        setLastDroppedPos(pos);
         if (p1.length === p2.length) {
           setP1((prevP1) => [...prevP1, pos]);
         } else {
@@ -46,6 +50,12 @@ function LocalGame() {
       }
     }
   }
+
+  const previewPos = (() => {
+    if (hoveredCol === null || winner) return null;
+    const pos = getDownPos(hoveredCol);
+    return parseInt(pos[0]) >= 0 ? pos : null;
+  })()
 
   const color = (pos) => {
     if (p1.indexOf(pos) != -1) {
@@ -56,6 +66,10 @@ function LocalGame() {
       if (winnerSet.indexOf(pos) != -1)
         return "border-red-500 bg-green-500"
       return "border-opacity-50 border-red-700 bg-red-500"
+    } else if (pos === previewPos) {
+      return p1.length === p2.length
+        ? "border-blue-500 bg-blue-400 opacity-40"
+        : "border-red-500 bg-red-400 opacity-40"
     } else {
       return "border-opacity-20 border-white"
     }
@@ -66,6 +80,7 @@ function LocalGame() {
     setP2([])
     setWinner(null)
     setWinnerSet([])
+    setLastDroppedPos(null)
   }
 
   const checkWinner = (i, j, list) => {
@@ -107,28 +122,51 @@ function LocalGame() {
     }
   }, [p1, p2])
 
-  const [play] = useSound(SUI);
+  const { play, muted, toggleMute } = useGameSound()
   useEffect(() => {
     if (winner) {
       play()
     }
-  }, [winner])
+  }, [winner, play])
 
   return (
-    <div className='border-[#646cff] border-[1px] rounded-xl pb-16 lg:px-20 mt-14'>
-      <button className='mb-16 mt-10' onClick={reset}>Reset</button>
-      {[...Array(rows)].map((_, rowIndex) => (
-        <div key={rowIndex} className='flex justify-center items-center px-3'>
-          {[...Array(columns)].map((_, colIndex) => (
-            <div
-              key={rowIndex * columns + colIndex}
-              className={color(rowIndex.toString() + colIndex.toString()) + ` w-[20vw] sm:w-[10vw] md:w-16 lg:w-20 aspect-square m-[2px] sm:m-[3px] md:m-[5px] rounded-full border-4 ${winner ? '' : 'cursor-pointer'}`}
-              onClick={() => winner ? null : handleClick(colIndex)}
-            >
-            </div>
-          ))}
+    <div className='relative border-[#646cff] border-[1px] rounded-xl pb-16 mt-14 max-w-4xl mx-auto px-2 sm:px-6 lg:px-10'>
+      <button
+        type="button"
+        onClick={toggleMute}
+        className="absolute left-2 top-2 z-20 text-[#646cff] p-2 rounded-lg hover:bg-[#646cff]/15 border border-transparent hover:border-[#646cff]/30"
+        aria-label={muted ? 'Unmute sound' : 'Mute sound'}
+      >
+        {muted ? <HiSpeakerXMark className="w-6 h-6" /> : <HiSpeakerWave className="w-6 h-6" />}
+      </button>
+      <button className='mb-8 mt-12 ms-auto block' onClick={reset}>Reset</button>
+      <div className={boardOuter}>
+        <div className={boardRow}>
+        {[...Array(columns)].map((_, colIndex) => (
+          <div
+            key={colIndex}
+            className={boardCol}
+            onMouseEnter={() => setHoveredCol(colIndex)}
+            onMouseLeave={() => setHoveredCol(null)}
+            onClick={() => winner ? null : handleClick(colIndex)}
+          >
+            {[...Array(rows)].map((_, rowIndex) => {
+              const pos = rowIndex.toString() + colIndex.toString();
+              const isDropping = pos === lastDroppedPos;
+              return (
+                <div
+                  key={rowIndex}
+                  className={pieceClass(color(pos), winner ? '' : 'cursor-pointer')}
+                  style={isDropping ? {
+                    animation: `dropPiece ${0.12 + rowIndex * 0.055}s cubic-bezier(0.25, 0.46, 0.45, 0.94)`
+                  } : {}}
+                />
+              )
+            })}
+          </div>
+        ))}
         </div>
-      ))}
+      </div>
       {winner && <Winner winner={winner} />}
     </div>
   )

@@ -1,4 +1,4 @@
-import { START_LOADING, STOP_LOADING, SET_USER, SIGN_IN, SIGN_OUT, UPDATE_EXPERIENCE } from '../actions/userActions';
+import { START_LOADING, STOP_LOADING, SET_USER, SIGN_IN, SIGN_OUT, UPDATE_EXPERIENCE, UPDATE_STATS } from '../actions/userActions';
 
 const initialState = {
   user: {
@@ -55,6 +55,8 @@ const userReducer = (state = initialState, action) => {
             lvl: action.payload.lvl,
           },
         };
+      case UPDATE_STATS:
+        return { ...state, user: { ...state.user, stats: action.payload } };
     default:
       return state;
   }

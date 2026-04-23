@@ -1,21 +1,29 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import Popup from 'reactjs-popup';
-import { io } from 'socket.io-client';
+import { useDispatch } from 'react-redux'
+import { setUser } from '../store/actions/userActions'
+import { getUser } from '../services/user.service'
 
-function InviteToGameModal({ open, closeModal, inviteData }) {
+function InviteToGameModal({ open, closeModal, inviteData, socket }) {
     const navigate = useNavigate();
-    const socket = io(import.meta.env.VITE_API_URL)
+    const dispatch = useDispatch();
+
+    const refreshUser = () => {
+        getUser().then((r) => dispatch(setUser(r.data.user))).catch(() => {});
+    };
 
     const accept = () => {
         closeModal();
+        if (socket) socket.emit('acceptInvite', inviteData);
+        refreshUser();
         navigate('/online/' + inviteData.newGame._id)
-        socket.emit('acceptInvite', inviteData);
     }
 
     const decline = () => {
         closeModal();
-        socket.emit('declineInvite', inviteData);
+        if (socket) socket.emit('declineInvite', inviteData);
+        refreshUser();
     }
     return (
         <Popup open={open} closeOnDocumentClick onClose={closeModal} modal>

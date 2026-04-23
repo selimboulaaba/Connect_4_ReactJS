@@ -70,6 +70,17 @@ button:hover {
   background: rgba(0, 0, 0, 0.5);
 }
 
+@keyframes dropPiece {
+  from {
+    transform: translateY(-500px);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 .error-body {
   margin: 0;
   padding: 0;

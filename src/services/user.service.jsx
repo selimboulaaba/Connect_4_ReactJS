@@ -30,3 +30,11 @@ export const updateProfile = async (id, body) => {
 export const getLeaderBoard = async () => {
     return await axios.get(url + "/leaderboard", { headers: auth.header() })
 }
+
+export const getOnlineStatus = async () => {
+    return await axios.get(url + "/online-status", { headers: auth.header() })
+}
+
+export const dismissPendingGameInvite = async (gameId) => {
+    return await axios.post(url + "/pending-invites/dismiss", { gameId }, { headers: auth.header() })
+}

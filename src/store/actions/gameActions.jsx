@@ -3,6 +3,8 @@ export const NEXT_GAME = 'NEXT_GAME';
 export const UPDATE_MOVES = 'UPDATE_MOVES';
 export const UPDATE_WINNER = 'UPDATE_WINNER';
 export const SET_WINNER = 'SET_WINNER';
+export const SET_REMATCH_PENDING = 'SET_REMATCH_PENDING';
+export const CLEAR_REMATCH_PENDING = 'CLEAR_REMATCH_PENDING';
 
 export const setGame = (game) => {
     return {
@@ -37,3 +39,12 @@ export const setWinner = (winner) => {
         payload: winner,
     };
 };
+
+export const setRematchPending = (username) => ({
+    type: SET_REMATCH_PENDING,
+    payload: username,
+});
+
+export const clearRematchPending = () => ({
+    type: CLEAR_REMATCH_PENDING,
+});
