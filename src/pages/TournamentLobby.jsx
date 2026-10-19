@@ -1,174 +1,236 @@
-import React, { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import {
-  createTournament,
-  getTournament,
-  joinTournament,
-  startTournament,
-} from '../services/game.service'
-import { toast } from 'react-toastify'
-import Loading from '../components/Loading'
+import { LuSwords, LuLink, LuCrown, LuPlay, LuEye, LuUserPlus } from 'react-icons/lu'
+import { errorMessage, tournamentsApi } from '../lib/api'
+import { useSocketEvent } from '../lib/socketContext'
+import { selectUser } from '../store/userSlice'
+import { Avatar, Badge, Button, Card, CardHeader, EmptyState, Input, Page, PageHeader, PageSpinner, cn, toast } from '../ui'
 
-function TournamentLobby() {
-  const { id } = useParams()
+const sid = (x) => (x == null ? '' : typeof x === 'object' ? String(x._id ?? '') : String(x))
+
+const STATUS = {
+  waiting: { label: 'Waiting for players', tone: 'neutral' },
+  semifinals: { label: 'Semifinals', tone: 'primary' },
+  final: { label: 'Final', tone: 'warning' },
+  complete: { label: 'Complete', tone: 'success' },
+}
+
+function CreateTournament() {
   const navigate = useNavigate()
-  const me = useSelector((s) => s.user.user)
-  const [name, setName] = useState('Bracket')
-  const [t, setT] = useState(null)
-  const [loading, setLoading] = useState(!!id)
+  const [name, setName] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    if (!id) {
-      setT(null)
-      setLoading(false)
-      return
-    }
+  const create = async (e) => {
+    e.preventDefault()
     setLoading(true)
-    getTournament(id)
-      .then((res) => setT(res.data.tournament))
-      .catch(() => toast.error('Could not load tournament'))
-      .finally(() => setLoading(false))
-  }, [id])
-
-  const hostCreate = () => {
-    createTournament({ name })
-      .then((res) => {
-        const newId = res.data.tournament._id
-        navigate(`/tournament/${newId}`, { replace: true })
-        toast.success('Tournament created — share this URL with three friends.')
-      })
-      .catch((e) => toast.error(e.response?.data?.message || 'Failed'))
-  }
-
-  const join = () => {
-    if (!id) return
-    joinTournament(id)
-      .then((res) => {
-        setT(res.data.tournament)
-        toast.success('Joined!')
-      })
-      .catch((e) => toast.error(e.response?.data?.message || 'Join failed'))
-  }
-
-  const start = () => {
-    if (!id) return
-    startTournament(id)
-      .then((res) => {
-        setT(res.data.tournament)
-        toast.success('Semifinals created — open your game links below.')
-      })
-      .catch((e) => toast.error(e.response?.data?.message || 'Cannot start'))
-  }
-
-  const sid = (x) => {
-    if (x == null) return ''
-    if (typeof x === 'string') return x
-    if (x._id != null) return x._id.toString()
-    return x.toString()
-  }
-  const isHost = t && me?._id && sid(t.host) === sid(me)
-  const amIn = !!(me?._id && (t?.players || []).some((p) => sid(p) === sid(me)))
-
-  const semiLink = (g) => {
-    const gid = sid(g)
-    return `/online/${gid}`
+    try {
+      const { data } = await tournamentsApi.create(name.trim() || 'Friday Cup')
+      navigate(`/tournament/${data.tournament._id}`, { replace: true })
+      toast.success('Share the link with three friends.', { title: 'Tournament created' })
+    } catch (err) {
+      toast.error(errorMessage(err))
+      setLoading(false)
+    }
   }
 
   return (
-    <div className='grid gap-6 mb-6 mt-12 border-[#646cff] border-[1px] rounded-xl py-12 px-6 max-w-2xl mx-auto'>
-      <h1 className='font-bold text-[#646cff] underline text-3xl sm:text-5xl'>Tournament (4)</h1>
-      <p className='text-gray-400 text-sm'>
-        Four players join this lobby. The host starts the bracket: two semifinal games (first to <strong>2</strong> round wins each), then a final between the two winners.
-      </p>
+    <Page size="md">
+      <PageHeader eyebrow="Tournament" title="Host a bracket" subtitle="Four players, knockout format. Semifinals and final are first to two round wins." />
+      <div className="grid gap-4 md:grid-cols-[1fr_1fr]">
+        <Card>
+          <CardHeader icon={LuSwords} title="New tournament" />
+          <form onSubmit={create} className="space-y-3">
+            <Input label="Name" placeholder="Friday Cup" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} />
+            <Button type="submit" block size="lg" loading={loading}>Create tournament</Button>
+          </form>
+        </Card>
+        <Card>
+          <h2 className="mb-3 font-semibold">How it works</h2>
+          <ol className="space-y-3 text-sm text-muted">
+            {['Create the tournament and share its link.', 'Three friends open the link and join.', 'You start the bracket: two semifinals are drawn at random.', 'Winners meet in the final. Last one standing is champion.'].map((s, i) => (
+              <li key={i} className="flex gap-3">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{i + 1}</span>
+                {s}
+              </li>
+            ))}
+          </ol>
+        </Card>
+      </div>
+    </Page>
+  )
+}
 
-      {!id && (
-        <div className='space-y-3'>
-          <input
-            className='w-full rounded-lg bg-gray-700 border border-gray-600 px-3 py-2 text-white'
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder='Tournament name'
-          />
-          <button type='button' onClick={hostCreate} className='w-full'>
-            Create tournament
-          </button>
-        </div>
+function MatchCard({ title, game, meId, winnerId }) {
+  if (!game) {
+    return (
+      <div className="rounded-2xl border border-dashed border-line p-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-subtle">{title}</p>
+        <p className="mt-3 text-sm text-subtle">Waiting for semifinal winners</p>
+      </div>
+    )
+  }
+  const players = [['p1', game.p1], ['p2', game.p2]]
+  const mine = players.some(([, p]) => sid(p) === meId)
+  return (
+    <div className={cn('rounded-2xl border bg-surface p-4 shadow-card', mine ? 'border-primary/50' : 'border-line')}>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wide text-subtle">{title}</p>
+        {winnerId && <Badge tone="success">Done</Badge>}
+      </div>
+      <ul className="space-y-2">
+        {players.map(([seat, p]) => {
+          const won = winnerId && sid(p) === sid(winnerId)
+          return (
+            <li key={seat} className={cn('flex items-center gap-2.5 rounded-xl px-2 py-1.5', won && 'bg-success/10')}>
+              <span className={cn('size-2.5 rounded-full', seat === 'p1' ? 'disc-p1' : 'disc-p2')} aria-hidden />
+              <Avatar avatarId={p?.avatar} name={p?.username} size="xs" />
+              <span className={cn('min-w-0 flex-1 truncate text-sm', won ? 'font-bold' : 'font-medium', winnerId && !won && 'text-subtle')}>{p?.username}</span>
+              <span className="font-display font-bold tabular">{game.score?.[seat] ?? 0}</span>
+            </li>
+          )
+        })}
+      </ul>
+      {!winnerId && (
+        <Button to={mine ? `/online/${game._id}` : `/watch/${game._id}`} variant={mine ? 'primary' : 'secondary'} size="sm" icon={mine ? LuPlay : LuEye} block className="mt-3">
+          {mine ? 'Play your match' : 'Watch'}
+        </Button>
       )}
-
-      {id && (
-        <div className='flex gap-2 flex-wrap'>
-          <button type='button' onClick={join} disabled={amIn}>
-            {amIn ? 'You are in' : 'Join this tournament'}
-          </button>
-          {isHost && (
-            <button
-              type='button'
-              onClick={start}
-              disabled={!t || t.players?.length !== 4 || t.status !== 'waiting'}
-            >
-              Start bracket
-            </button>
-          )}
-        </div>
-      )}
-
-      {loading ? (
-        <Loading w='6' h='6' />
-      ) : id && t ? (
-        <div className='text-sm space-y-2 border border-gray-700 rounded-lg p-4'>
-          <div>
-            <span className='text-gray-500'>Status:</span>{' '}
-            <span className='text-[#646cff] font-semibold'>{t.status}</span>
-          </div>
-          <div>
-            <span className='text-gray-500'>Players ({t.players?.length || 0}/4):</span>
-            <ul className='mt-1'>
-              {(t.players || []).map((p) => (
-                <li key={sid(p)}>{p.username}</li>
-              ))}
-            </ul>
-          </div>
-          {t.status === 'semifinals' && t.semiGameIds?.length === 2 && (
-            <div className='mt-4 space-y-2'>
-              <div className='font-bold text-[#646cff]'>Semifinals</div>
-              <Link to={semiLink(t.semiGameIds[0])}>
-                <button className='w-full text-left' type='button'>
-                  Semifinal A — open game
-                </button>
-              </Link>
-              <Link to={semiLink(t.semiGameIds[1])}>
-                <button className='w-full text-left' type='button'>
-                  Semifinal B — open game
-                </button>
-              </Link>
-            </div>
-          )}
-          {t.status === 'final' && t.finalGameId && (
-            <div className='mt-4'>
-              <div className='font-bold text-[#646cff] mb-2'>Final</div>
-              <Link to={semiLink(t.finalGameId)}>
-                <button className='w-full' type='button'>
-                  Open final game
-                </button>
-              </Link>
-            </div>
-          )}
-          {t.status === 'complete' && t.championId && (
-            <p className='text-green-400 mt-2'>
-              Champion: <strong>{t.championId.username}</strong>
-            </p>
-          )}
-        </div>
-      ) : null}
-
-      <Link to='/'>
-        <button type='button' className='text-gray-500'>
-          Home
-        </button>
-      </Link>
     </div>
   )
 }
 
-export default TournamentLobby
+function Lobby({ id }) {
+  const me = useSelector(selectUser)
+  const [t, setT] = useState(null)
+  const [error, setError] = useState(null)
+  const [busy, setBusy] = useState(false)
+
+  const load = useCallback(() => {
+    tournamentsApi.get(id).then((r) => setT(r.data.tournament)).catch((e) => setError(errorMessage(e)))
+  }, [id])
+
+  useEffect(() => { load() }, [load])
+  useSocketEvent('tournamentUpdate', ({ tournamentId }) => tournamentId === id && load())
+  // Match scores aren't pushed to the lobby, so poll lightly while matches are running.
+  useEffect(() => {
+    if (!t || !['semifinals', 'final'].includes(t.status)) return
+    const timer = setInterval(load, 10000)
+    return () => clearInterval(timer)
+  }, [t, load])
+
+  const run = async (fn, ok) => {
+    setBusy(true)
+    try {
+      const { data } = await fn()
+      setT(data.tournament)
+      if (ok) toast.success(ok)
+    } catch (e) {
+      toast.error(errorMessage(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (error && !t) return <Page size="sm"><EmptyState icon={LuSwords} title="Tournament not found" action={<Button to="/tournament">Create one</Button>}>{error}</EmptyState></Page>
+  if (!t) return <PageSpinner />
+
+  const isHost = sid(t.host) === me._id
+  const joined = t.players.some((p) => sid(p) === me._id)
+  const status = STATUS[t.status]
+  const link = `${window.location.origin}/tournament/${t._id}`
+  const slots = Array.from({ length: 4 }, (_, i) => t.players[i] || null)
+  const semis = t.semiGameIds || []
+  const champion = t.championId
+
+  return (
+    <Page>
+      <PageHeader
+        eyebrow="Tournament"
+        title={t.name}
+        subtitle={`Hosted by ${t.host.username}`}
+        actions={
+          <>
+            <Badge tone={status.tone} className="self-center text-sm">{status.label}</Badge>
+            <Button
+              variant="secondary"
+              icon={LuLink}
+              onClick={() => navigator.clipboard.writeText(link).then(() => toast.success('Invite link copied'), () => toast.error("Couldn't copy"))}
+            >
+              Copy invite link
+            </Button>
+          </>
+        }
+      />
+
+      {champion && (
+        <Card className="mb-6 flex items-center gap-4 border-warning/40 bg-gradient-to-r from-warning/15 to-surface">
+          <span className="text-4xl" aria-hidden>🏆</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm text-muted">Champion</p>
+            <p className="truncate font-display text-2xl font-bold">{champion.username}</p>
+          </div>
+          <Avatar avatarId={champion.avatar} name={champion.username} size="lg" />
+        </Card>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
+        <Card>
+          <CardHeader title="Players" subtitle={`${t.players.length} of 4`} />
+          <ul className="space-y-2">
+            {slots.map((p, i) => (
+              <li key={i} className={cn('flex items-center gap-3 rounded-xl border p-2.5', p ? 'border-line' : 'border-dashed border-line')}>
+                {p ? (
+                  <>
+                    <Avatar avatarId={p.avatar} name={p.username} size="sm" />
+                    <span className="min-w-0 flex-1 truncate font-medium">{p.username}</span>
+                    {sid(p) === sid(t.host) && <LuCrown className="size-4 text-warning" aria-label="Host" />}
+                    {sid(p) === me._id && <Badge>You</Badge>}
+                  </>
+                ) : (
+                  <span className="flex items-center gap-3 text-sm text-subtle">
+                    <span className="size-8 rounded-full border-2 border-dashed border-line" /> Open slot
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+          {t.status === 'waiting' && (
+            <div className="mt-4 space-y-2">
+              {!joined && <Button block icon={LuUserPlus} loading={busy} disabled={t.players.length >= 4} onClick={() => run(() => tournamentsApi.join(id), "You're in!")}>Join tournament</Button>}
+              {isHost && (
+                <Button block variant={t.players.length === 4 ? 'primary' : 'secondary'} loading={busy} disabled={t.players.length !== 4} onClick={() => run(() => tournamentsApi.start(id), 'Bracket started. Good luck!')}>
+                  {t.players.length === 4 ? 'Start bracket' : `Need ${4 - t.players.length} more`}
+                </Button>
+              )}
+              {!isHost && joined && <p className="text-center text-sm text-muted">Waiting for {t.host.username} to start…</p>}
+            </div>
+          )}
+        </Card>
+
+        <div>
+          <h2 className="mb-3 text-lg font-semibold">Bracket</h2>
+          {t.status === 'waiting' ? (
+            <EmptyState icon={LuSwords} title="The bracket appears once the host starts">Semifinal pairings are drawn at random.</EmptyState>
+          ) : (
+            <div className="grid items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
+              <div className="space-y-4">
+                <MatchCard title="Semifinal A" game={semis[0]} meId={me._id} winnerId={t.semiWinners?.[0]} />
+                <MatchCard title="Semifinal B" game={semis[1]} meId={me._id} winnerId={t.semiWinners?.[1]} />
+              </div>
+              <div className="hidden h-full w-6 md:flex md:flex-col md:justify-center" aria-hidden>
+                <div className="h-1/2 rounded-r-xl border-y-2 border-r-2 border-line" />
+              </div>
+              <MatchCard title="Final" game={t.finalGameId} meId={me._id} winnerId={t.championId} />
+            </div>
+          )}
+        </div>
+      </div>
+    </Page>
+  )
+}
+
+export default function TournamentLobby() {
+  const { id } = useParams()
+  return id ? <Lobby id={id} key={id} /> : <CreateTournament />
+}

@@ -1,92 +1,96 @@
-import React, { useEffect, useState } from 'react'
-import { getLeaderBoard } from '../services/user.service'
-import Loading from '../components/Loading'
-import UserAvatar from '../components/UserAvatar'
+import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
+import { LuTrophy } from 'react-icons/lu'
+import { usersApi } from '../lib/api'
+import { selectUser } from '../store/userSlice'
+import { Avatar, Badge, EmptyState, Page, PageHeader, Skeleton, cn } from '../ui'
 
-const rankStyle = (index) => {
-  if (index === 0) return 'bg-gradient-to-br from-amber-300 to-amber-600 text-black shadow-lg shadow-amber-500/20'
-  if (index === 1) return 'bg-gradient-to-br from-slate-300 to-slate-500 text-black shadow-md'
-  if (index === 2) return 'bg-gradient-to-br from-orange-400 to-amber-800 text-white shadow-md'
-  return 'bg-[#2a2a35] text-[#a5b4fc] ring-1 ring-[#646cff]/30'
+const winRate = (s = {}) => {
+  const total = (s.wins || 0) + (s.losses || 0) + (s.draws || 0)
+  return total ? Math.round(((s.wins || 0) / total) * 100) : null
 }
 
-function LeaderBoard() {
-  const [users, setUsers] = useState([])
+const MEDALS = [
+  { ring: 'ring-[#f5c84c]', bg: 'from-[#f5c84c]/25', label: '🥇', h: 'sm:h-44' },
+  { ring: 'ring-[#c3ccd8]', bg: 'from-[#c3ccd8]/25', label: '🥈', h: 'sm:h-36' },
+  { ring: 'ring-[#d99a5b]', bg: 'from-[#d99a5b]/25', label: '🥉', h: 'sm:h-32' },
+]
 
-  useEffect(() => {
-    getLeaderBoard()
-      .then((response) => setUsers(response.data.users || []))
-      .catch(() => setUsers([]))
-  }, [])
-
+function Podium({ users, meId }) {
+  // Display order 2nd, 1st, 3rd so the winner stands in the middle.
+  const order = [1, 0, 2].filter((i) => users[i])
   return (
-    <div className="mx-auto mt-8 max-w-4xl px-3 pb-20 sm:mt-12 sm:px-6">
-      <div className="mb-8 rounded-2xl border border-[#646cff]/40 bg-gradient-to-b from-[#1a1a22] to-[#141418] px-5 py-8 sm:px-10">
-        <h1 className="text-center text-3xl font-bold tracking-tight text-[#646cff] sm:text-4xl">
-          Leaderboard
-        </h1>
-        <p className="mx-auto mt-2 max-w-lg text-center text-sm text-gray-400">
-          Ranked by XP. Stats show wins, losses, draws, and win rate.
-        </p>
-      </div>
-
-      {users.length === 0 ? (
-        <div className="flex justify-center py-16">
-          <Loading w="8" h="8" />
-        </div>
-      ) : (
-        <ul className="flex flex-col gap-3 sm:gap-4">
-          {users.map((user, index) => {
-            const w = user.stats?.wins ?? 0
-            const l = user.stats?.losses ?? 0
-            const d = user.stats?.draws ?? 0
-            const total = w + l + d
-            const pct = total > 0 ? Math.round((w / total) * 100) : null
-            return (
-              <li
-                key={user._id || index}
-                className="flex flex-col gap-4 rounded-2xl border border-[#646cff]/20 bg-[#1c1c24]/90 p-4 shadow-sm backdrop-blur-sm transition hover:border-[#646cff]/45 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-5"
-              >
-                <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-                  <div
-                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold sm:h-12 sm:w-12 sm:text-base ${rankStyle(index)}`}
-                  >
-                    {index + 1}
-                  </div>
-                  <UserAvatar avatarId={user.avatar} sizePx={48} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-base font-semibold text-white sm:text-lg">{user.username}</p>
-                    <p className="text-xs text-gray-400 sm:text-sm">Level {user.lvl}</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/5 pt-3 sm:border-t-0 sm:pt-0 sm:justify-end">
-                  <div className="flex flex-wrap gap-2 text-xs font-semibold sm:text-sm">
-                    <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-emerald-300 ring-1 ring-emerald-500/25">
-                      {w}W
-                    </span>
-                    <span className="rounded-full bg-rose-500/15 px-2.5 py-1 text-rose-300 ring-1 ring-rose-500/25">
-                      {l}L
-                    </span>
-                    <span className="rounded-full bg-amber-500/15 px-2.5 py-1 text-amber-200 ring-1 ring-amber-500/25">
-                      {d}D
-                    </span>
-                    <span className="rounded-full bg-[#646cff]/15 px-2.5 py-1 text-[#b4c0ff] ring-1 ring-[#646cff]/30">
-                      {pct != null ? `${pct}%` : '—'}
-                    </span>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <span className="text-xl font-bold tabular-nums text-[#646cff] sm:text-2xl">{user.xp}</span>
-                    <span className="ml-1 text-xs font-medium uppercase tracking-wide text-gray-500">XP</span>
-                  </div>
-                </div>
-              </li>
-            )
-          })}
-        </ul>
-      )}
+    <div className="mb-8 grid grid-cols-3 items-end gap-2 sm:gap-4">
+      {order.map((i) => {
+        const u = users[i]
+        const m = MEDALS[i]
+        return (
+          <div key={u._id} className={cn('flex flex-col items-center rounded-2xl border border-line bg-gradient-to-b to-surface p-3 text-center sm:p-4', m.bg, m.h, u._id === meId && 'border-primary/60')}>
+            <span className="text-2xl" aria-hidden>{m.label}</span>
+            <Avatar avatarId={u.avatar} name={u.username} size="lg" className={cn('my-2 rounded-full ring-4', m.ring)} />
+            <p className="w-full truncate text-sm font-semibold sm:text-base">{u.username}</p>
+            <p className="text-xs text-subtle">Lvl {u.lvl} · <span className="font-semibold text-fg tabular">{u.xp}</span> XP</p>
+          </div>
+        )
+      })}
     </div>
   )
 }
 
-export default LeaderBoard
+export default function LeaderBoard() {
+  const me = useSelector(selectUser)
+  const [users, setUsers] = useState(null)
+
+  useEffect(() => {
+    usersApi.leaderboard().then((r) => setUsers(r.data.users || [])).catch(() => setUsers([]))
+  }, [])
+
+  const myRank = users?.findIndex((u) => u._id === me._id)
+
+  return (
+    <Page size="md">
+      <PageHeader
+        eyebrow="Rankings"
+        title="Leaderboard"
+        subtitle="Top players by XP. Win rounds, solve daily puzzles and climb."
+        actions={myRank >= 0 && <Badge tone="primary" className="self-center text-sm">You&apos;re #{myRank + 1}</Badge>}
+      />
+      {users === null ? (
+        <div className="space-y-3">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-16" />)}</div>
+      ) : users.length === 0 ? (
+        <EmptyState icon={LuTrophy} title="No players yet">Be the first to play a round!</EmptyState>
+      ) : (
+        <>
+          {users.length >= 3 && <Podium users={users} meId={me._id} />}
+          <ol className="overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
+            <li className="hidden grid-cols-[3rem_1fr_7rem_5rem_5rem] gap-3 border-b border-line px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-subtle sm:grid">
+              <span>#</span><span>Player</span><span>W / L / D</span><span className="text-right">Win %</span><span className="text-right">XP</span>
+            </li>
+            {users.map((u, i) => {
+              const rate = winRate(u.stats)
+              const isMe = u._id === me._id
+              return (
+                <li key={u._id} className={cn('grid grid-cols-[2.25rem_1fr_auto] items-center gap-3 border-b border-line px-4 py-3 last:border-0 sm:grid-cols-[3rem_1fr_7rem_5rem_5rem]', isMe && 'bg-primary/5')}>
+                  <span className={cn('font-display text-lg font-bold tabular', i < 3 ? 'text-warning' : 'text-subtle')}>{i + 1}</span>
+                  <span className="flex min-w-0 items-center gap-3">
+                    <Avatar avatarId={u.avatar} name={u.username} size="sm" />
+                    <span className="min-w-0">
+                      <span className="block truncate font-semibold">{u.username}{isMe && <span className="ml-1.5 text-xs font-medium text-primary">(you)</span>}</span>
+                      <span className="block text-xs text-subtle sm:hidden">Lvl {u.lvl} · {rate ?? '—'}{rate != null && '%'} wins</span>
+                      <span className="hidden text-xs text-subtle sm:block">Level {u.lvl}</span>
+                    </span>
+                  </span>
+                  <span className="hidden text-sm tabular text-muted sm:block">
+                    <span className="text-success">{u.stats?.wins ?? 0}</span> / <span className="text-danger">{u.stats?.losses ?? 0}</span> / {u.stats?.draws ?? 0}
+                  </span>
+                  <span className="hidden text-right text-sm tabular sm:block">{rate != null ? `${rate}%` : '—'}</span>
+                  <span className="text-right font-display font-bold tabular">{u.xp}<span className="ml-1 text-xs font-medium text-subtle">XP</span></span>
+                </li>
+              )
+            })}
+          </ol>
+        </>
+      )}
+    </Page>
+  )
+}

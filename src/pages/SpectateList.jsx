@@ -1,50 +1,76 @@
-import React, { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getActiveGames } from '../services/game.service'
-import Loading from '../components/Loading'
-import UserAvatar from '../components/UserAvatar'
+import { LuEye, LuRefreshCw } from 'react-icons/lu'
+import { gamesApi } from '../lib/api'
+import { MiniBoard } from '../components/game/Board'
+import { Avatar, Badge, Button, EmptyState, LiveDot, Page, PageHeader, Skeleton } from '../ui'
 
-function SpectateList() {
-  const [games, setGames] = useState([])
-  const [loading, setLoading] = useState(true)
+function timeAgo(date) {
+  const s = Math.max(0, Math.round((Date.now() - new Date(date).getTime()) / 1000))
+  if (s < 60) return 'just now'
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`
+  return `${Math.floor(s / 3600)} h ago`
+}
 
-  useEffect(() => {
-    getActiveGames()
-      .then((res) => setGames(res.data.games || []))
-      .catch(() => setGames([]))
-      .finally(() => setLoading(false))
+export default function SpectateList() {
+  const [games, setGames] = useState(null)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const load = useCallback(() => {
+    setRefreshing(true)
+    gamesApi.active()
+      .then((r) => setGames(r.data.games || []))
+      .catch(() => setGames((g) => g || []))
+      .finally(() => setRefreshing(false))
   }, [])
 
+  useEffect(() => {
+    load()
+    const t = setInterval(load, 15000)
+    return () => clearInterval(t)
+  }, [load])
+
   return (
-    <div className='grid gap-6 mb-6 mt-12 border-[#646cff] border-[1px] rounded-xl py-16 px-6'>
-      <h1 className='font-bold text-[#646cff] mb-6 underline text-3xl sm:text-5xl'>Watch a game</h1>
-      <p className='text-gray-400 text-sm mb-4'>Live matches with two players. Opens in read-only mode.</p>
-      {loading ? (
-        <Loading w='8' h='8' />
+    <Page>
+      <PageHeader
+        eyebrow="Spectate"
+        title="Live games"
+        subtitle="Watch matches as they happen. The list refreshes automatically."
+        actions={<Button variant="secondary" icon={LuRefreshCw} onClick={load} loading={refreshing}>Refresh</Button>}
+      />
+      {games === null ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2].map((i) => <Skeleton key={i} className="h-64" />)}
+        </div>
       ) : games.length === 0 ? (
-        <p className='text-gray-500'>No active games right now.</p>
+        <EmptyState icon={LuEye} title="No live games right now" action={<Button to="/online">Start a game</Button>}>
+          Games played in the last 30 minutes show up here.
+        </EmptyState>
       ) : (
-        <ul className='space-y-3'>
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {games.map((g) => (
             <li key={g._id}>
-              <Link to={`/watch/${g._id}`}>
-                <button className='w-full flex items-center justify-between gap-3 text-left py-3 px-4 rounded-lg border border-[#646cff]/40 hover:border-[#646cff]'>
-                  <span className='flex items-center gap-2 min-w-0'>
-                    <UserAvatar avatarId={g.p1?.avatar} sizePx={28} className='rounded-full' />
-                    <span className='font-semibold truncate'>{g.p1?.username}</span>
-                    <span className='text-gray-500'>vs</span>
-                    <UserAvatar avatarId={g.p2?.avatar} sizePx={28} className='rounded-full' />
-                    <span className='font-semibold truncate'>{g.p2?.username}</span>
+              <Link to={`/watch/${g._id}`} className="group block rounded-2xl border border-line bg-surface p-4 shadow-card transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-pop">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-danger"><LiveDot /> Live</span>
+                  <span className="flex items-center gap-2">
+                    {g.tournamentId && <Badge tone="warning">Tournament</Badge>}
+                    <span className="text-xs text-subtle">{timeAgo(g.updatedAt)}</span>
                   </span>
-                  <span className='text-[#646cff] text-sm shrink-0'>Spectate →</span>
-                </button>
+                </div>
+                <MiniBoard p1Moves={g.p1_Moves} p2Moves={g.p2_Moves} />
+                <div className="mt-4 flex items-center gap-2 text-sm">
+                  <Avatar avatarId={g.p1?.avatar} name={g.p1?.username} size="sm" />
+                  <span className="min-w-0 flex-1 truncate font-semibold">{g.p1?.username}</span>
+                  <span className="font-display text-lg font-bold tabular">{g.score?.p1 ?? 0}–{g.score?.p2 ?? 0}</span>
+                  <span className="min-w-0 flex-1 truncate text-right font-semibold">{g.p2?.username}</span>
+                  <Avatar avatarId={g.p2?.avatar} name={g.p2?.username} size="sm" />
+                </div>
               </Link>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </Page>
   )
 }
-
-export default SpectateList

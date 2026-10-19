@@ -1,86 +1,47 @@
-import React, { useState } from 'react'
-import { signin } from '../services/user.service'
-import { Link, useNavigate } from 'react-router-dom'
-import Loading from '../components/Loading'
-import Alert from '../components/Alert'
+import { useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
-import { signIn } from '../store/actions/userActions'
+import { LuUser, LuLock } from 'react-icons/lu'
+import { AuthLayout } from '../components/AuthLayout'
+import { errorMessage, usersApi } from '../lib/api'
+import { signedIn } from '../store/userSlice'
+import { Alert, Button, Input } from '../ui'
 
-function SignIn() {
-    const [user, setUser] = useState({
-        username: "",
-        password: ""
-    })
-    const [loading, setLoading] = useState(false)
-    const navigate = useNavigate()
-    const [alert, setAlert] = useState(null)
-    const dispatch = useDispatch();
+export default function SignIn() {
+  const [form, setForm] = useState({ username: '', password: '' })
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const from = useLocation().state?.from || '/'
 
-    const handleChange = (input, event) => {
-        setUser({
-            ...user,
-            [input]: event.target.value
-        })
+  const submit = async (e) => {
+    e.preventDefault()
+    if (!form.username.trim() || !form.password) return setError('Enter your username and password.')
+    setError(null)
+    setLoading(true)
+    try {
+      const { data } = await usersApi.signin({ username: form.username.trim(), password: form.password })
+      dispatch(signedIn(data))
+      navigate(from, { replace: true })
+    } catch (err) {
+      setError(errorMessage(err))
+      setLoading(false)
     }
+  }
 
-    const submit = (e) => {
-        e.preventDefault();
-        setAlert(null)
-        if (user.username === "" || !!user.password === "") {
-            setAlert("Insert Credentials.")
-        } else {
-            setLoading(true)
-            signin(user)
-                .then(response => {
-                    dispatch(signIn(response.data))
-                    navigate("/")
-                })
-                .catch(error => {
-                    setAlert(error.response.data.message)
-                })
-                .finally(() => {
-                    setLoading(false)
-                })
-        }
-    }
-
-    return (
-        <form>
-            <div className="grid gap-6 mb-6 mt-12 border-[#646cff] border-[1px] rounded-xl py-20">
-                <h1 className='font-bold text-[#646cff] mb-10 underline'>Sign In</h1>
-                {alert && <Alert message={alert} />}
-                <div>
-                    <label htmlFor="username" className="block mb-2 text-sm font-medium text-white">Username</label>
-                    <input
-                        type="text"
-                        id="username"
-                        value={user.username}
-                        onChange={(event) => handleChange("username", event)}
-                        className="w-[90%] md:w-[70%] lg:w-[50%] m-auto text-center border text-sm rounded-lg block p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Username *"
-                        autoFocus
-                    />
-                </div>
-                <div>
-                    <label htmlFor="password" className="block mb-2 text-sm font-medium text-white">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        value={user.password}
-                        onChange={(event) => handleChange("password", event)}
-                        className="w-[90%] md:w-[70%] lg:w-[50%] m-auto text-center border text-sm rounded-lg block p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Password *"
-                    />
-                </div>
-                {
-                    loading
-                        ? <Loading  w="6" h="6"/>
-                        : <button onClick={submit} className='w-[90%] md:w-[70%] lg:w-[50%] m-auto '>Sign In</button>
-                }
-                <Link to="/signup">Create a New Account</Link>
-            </div>
-        </form>
-    )
+  return (
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to play online, add friends and earn XP."
+      footer={<>New here? <Link to="/signup" state={{ from }} className="font-semibold text-primary hover:underline">Create an account</Link></>}
+    >
+      <form onSubmit={submit} className="space-y-4" noValidate>
+        {error && <Alert>{error}</Alert>}
+        <Input label="Username" icon={LuUser} autoComplete="username" autoFocus value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+        <Input label="Password" icon={LuLock} type="password" autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+        <Button type="submit" size="lg" block loading={loading}>Sign in</Button>
+      </form>
+    </AuthLayout>
+  )
 }
-
-export default SignIn

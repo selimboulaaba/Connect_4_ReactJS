@@ -1,91 +1,87 @@
-import React, { useState } from 'react'
-import { createGame, joinGame } from '../services/game.service'
-import { useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
-import Loading from '../components/Loading';
-import Alert from '../components/Alert';
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { LuPlus, LuLogIn, LuClipboard, LuUsers, LuSwords } from 'react-icons/lu'
+import { errorMessage, gamesApi } from '../lib/api'
+import { Alert, Button, Card, CardHeader, Input, Page, PageHeader } from '../ui'
 
-function OnlineMenu() {
-
-    const user = useSelector(state => state.user);
-    const [id, setId] = useState("")
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(false)
-    const [alert, setAlert] = useState(null)
-
-    const create = () => {
-        setAlert(null)
-        setLoading(true)
-        createGame(user.user._id)
-            .then(response => {
-                navigate("/online/" + response.data.game._id)
-            })
-            .catch(error => {
-                setAlert(error.response.data.message)
-            })
-            .finally(() => {
-                setLoading(false)
-            })
-    }
-
-    const join = () => {
-        setAlert(null)
-        if (id) {
-            setLoading(true)
-            joinGame(id)
-                .then(response => {
-                    navigate("/online/" + response.data.game._id)
-                })
-                .catch(error => {
-                    setAlert(error.response.data.message)
-                })
-                .finally(() => {
-                    setLoading(false)
-                })
-        } else {
-            setAlert("Insert Game Id.")
-        }
-    }
-
-    const handlePaste = async () => {
-        if (id === "") {
-            setId(await navigator.clipboard.readText())
-        }
-    }
-    return (
-        <>
-            <div className="grid gap-6 mb-6 mt-12 border-[#646cff] border-[1px] rounded-xl py-20">
-                {alert && <Alert message={alert} />}
-                <div>
-                    {loading
-                        ? <Loading w="6" h="6" />
-                        : <Link onClick={(event) => event.preventDefault()}><button onClick={create} className="w-[90%] md:w-[70%] lg:w-[50%] m-auto ">Create a New Game</button></Link>
-                    }
-                </div>
-                <div className='font-bold grid grid-cols-11 sm:grid-cols-9 items-center px-6'>
-                    <div className='border-[1px] rounded-xl col-span-4 sm:col-span-4 border-[#646cff]'></div>
-                    <div className='text-3xl mb-[5px] font-bold col-span-3 sm:col-span-1 text-[#646cff] text-center'>OR</div>
-                    <div className='border-[1px] rounded-xl col-span-4 sm:col-span-4 border-[#646cff]'></div>
-                </div>
-                <div>
-                    <input
-                        type="text"
-                        value={id}
-                        onChange={(event) => setId(event.target.value)}
-                        onClick={handlePaste}
-                        className="w-[90%] md:w-[70%] lg:w-[50%] m-auto text-center border text-sm rounded-lg block p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Insert Game Id Here *"
-                    />
-                </div>
-                <div>
-                    {loading
-                        ? <Loading w="6" h="6" />
-                        : <Link onClick={(event) => event.preventDefault()}><button onClick={join} className="w-[90%] md:w-[70%] lg:w-[50%] m-auto ">Join a Game</button></Link>
-                    }
-                </div>
-            </div>
-        </>
-    )
+// Accepts a raw game code or a full invite link.
+const extractId = (text) => {
+  const m = String(text).trim().match(/[a-f0-9]{24}/i)
+  return m ? m[0] : String(text).trim()
 }
 
-export default OnlineMenu
+export default function OnlineMenu() {
+  const navigate = useNavigate()
+  const [code, setCode] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [joining, setJoining] = useState(false)
+  const [error, setError] = useState(null)
+
+  const create = async () => {
+    setError(null)
+    setCreating(true)
+    try {
+      const { data } = await gamesApi.create()
+      navigate(`/online/${data.game._id}`)
+    } catch (e) {
+      setError(errorMessage(e))
+      setCreating(false)
+    }
+  }
+
+  const join = async (e) => {
+    e.preventDefault()
+    const id = extractId(code)
+    if (!id) return setError('Paste a game code or invite link.')
+    setError(null)
+    setJoining(true)
+    try {
+      await gamesApi.join(id)
+      navigate(`/online/${id}`)
+    } catch (err) {
+      setError(errorMessage(err))
+      setJoining(false)
+    }
+  }
+
+  const paste = async () => {
+    try {
+      setCode(await navigator.clipboard.readText())
+    } catch {
+      setError("Couldn't read the clipboard. Paste the code manually.")
+    }
+  }
+
+  return (
+    <Page size="md">
+      <PageHeader eyebrow="Online" title="Play a friend" subtitle="Start a new game and share the link, or join a game someone sent you." />
+      {error && <Alert className="mb-4">{error}</Alert>}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="flex flex-col">
+          <CardHeader icon={LuPlus} title="New game" subtitle="You’ll play Red and move first." />
+          <p className="mb-5 text-sm text-muted">
+            We’ll create a private game with a shareable link. Rounds have a 30-second turn timer and you can play as many as you like.
+          </p>
+          <Button onClick={create} loading={creating} size="lg" className="mt-auto" block>Create game</Button>
+        </Card>
+        <Card className="flex flex-col">
+          <CardHeader icon={LuLogIn} title="Join a game" subtitle="Paste a code or link from a friend." />
+          <form onSubmit={join} className="mt-auto space-y-3">
+            <Input
+              aria-label="Game code or link"
+              placeholder="Game code or invite link"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              trailing={<Button size="sm" variant="ghost" icon={LuClipboard} onClick={paste}>Paste</Button>}
+            />
+            <Button type="submit" size="lg" variant="secondary" loading={joining} block>Join game</Button>
+          </form>
+        </Card>
+      </div>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <Button to="/friends" variant="secondary" icon={LuUsers}>Invite a friend directly</Button>
+        <Button to="/tournament" variant="secondary" icon={LuSwords}>Host a tournament</Button>
+      </div>
+    </Page>
+  )
+}

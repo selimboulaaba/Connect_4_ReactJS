@@ -1,124 +1,135 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { getTodayPuzzle, solvePuzzle } from '../services/game.service'
-import { toast } from 'react-toastify'
-import Loading from '../components/Loading'
-import { boardOuter, boardRow, boardCol, pieceClass } from '../game/boardLayout'
+import { LuLightbulb, LuPuzzle, LuCheckCircle } from 'react-icons/lu'
+import { Board } from '../components/game/Board'
+import { errorMessage, puzzlesApi } from '../lib/api'
+import { evaluate, landingPos } from '../game/logic'
+import { playChime, playDrop, playWin } from '../lib/sound'
+import { Alert, Badge, Button, Card, EmptyState, Page, PageHeader, PageSpinner, toast } from '../ui'
 
-const rows = 6
-const columns = 7
-
-/** Build cell occupancy from alternating move lists (p1 moves first). */
-function buildOccupancy(p1_Moves, p2_Moves) {
-  const p1 = new Set()
-  const p2 = new Set()
-  for (let i = 0; i < p1_Moves.length; i++) {
-    p1.add(p1_Moves[i])
-    if (i < p2_Moves.length) p2.add(p2_Moves[i])
-  }
-  return { p1, p2 }
-}
-
-function getDownPos(colIndex, p1_Moves, p2_Moves) {
-  let pos = '5' + colIndex
-  p1_Moves.forEach((pos1) => {
-    if (pos1[1] === pos[1] && pos1[0] <= pos[0]) pos = (+pos1[0] - 1).toString() + pos[1]
-  })
-  p2_Moves.forEach((pos2) => {
-    if (pos2[1] === pos[1] && pos2[0] <= pos[0]) pos = (+pos2[0] - 1).toString() + pos[1]
-  })
-  return pos
-}
-
-function DailyChallenge() {
-  const signedIn = useSelector((s) => s.user.signedIn)
-  const [loading, setLoading] = useState(true)
+export default function DailyChallenge() {
+  const signedIn = useSelector((s) => !!s.user.token)
   const [puzzle, setPuzzle] = useState(null)
+  const [error, setError] = useState(null)
+  const [attempt, setAttempt] = useState(null) // pos tried, shown on the board
+  const [solved, setSolved] = useState(null) // winning pos once solved
+  const [showHint, setShowHint] = useState(false)
+  const [tries, setTries] = useState(0)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    getTodayPuzzle()
-      .then((res) => setPuzzle(res.data))
-      .catch(() => toast.error('Could not load puzzle'))
-      .finally(() => setLoading(false))
+    puzzlesApi.today()
+      .then((r) => {
+        setPuzzle(r.data)
+        if (r.data.alreadySolved && r.data.solution) setSolved(r.data.solution)
+      })
+      .catch((e) => setError(errorMessage(e)))
   }, [])
 
-  const tryColumn = async (colIndex) => {
+  const p1 = useMemo(() => {
+    if (!puzzle) return []
+    const extra = solved || attempt
+    return extra ? [...puzzle.p1_Moves, extra] : puzzle.p1_Moves
+  }, [puzzle, solved, attempt])
+  const winLine = solved && puzzle ? evaluate(p1, puzzle.p2_Moves).line : null
+
+  const tryColumn = async (col) => {
+    if (!puzzle || solved || submitting) return
+    const p = landingPos(puzzle.p1_Moves, puzzle.p2_Moves, col)
+    if (!p) return
+    setAttempt(p)
+    playDrop()
+    const wins = evaluate([...puzzle.p1_Moves, p], puzzle.p2_Moves).winner === 'p1'
+
     if (!signedIn) {
-      toast.info('Sign in to submit your answer and earn XP.')
+      // Guests can practise; the answer is checked locally.
+      setTimeout(() => {
+        if (wins) {
+          setSolved(p)
+          playWin()
+        } else {
+          setTries((t) => t + 1)
+          playChime(false)
+          setTimeout(() => setAttempt(null), 600)
+        }
+      }, 250)
       return
     }
-    if (!puzzle || puzzle.alreadySolved || submitting) return
-    const pos = getDownPos(colIndex, puzzle.p1_Moves, puzzle.p2_Moves)
-    if (+pos[0] < 0) {
-      toast.warn('Column is full.')
-      return
-    }
+
     setSubmitting(true)
     try {
-      const res = await solvePuzzle(pos)
-      if (res.data.correct) {
-        toast.success(`Correct! +${res.data.xpAwarded} XP`)
-        setPuzzle((p) => ({ ...p, alreadySolved: true }))
+      const { data } = await puzzlesApi.solve(p)
+      if (data.correct) {
+        setSolved(p)
+        playWin()
+        toast.success(`+${data.xpAwarded} XP earned`, { title: 'Puzzle solved!' })
       } else {
-        toast.error('Not the winning move — try another column.')
+        setTries((t) => t + 1)
+        playChime(false)
+        setTimeout(() => setAttempt(null), 600)
       }
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Submit failed')
+      toast.error(errorMessage(e))
+      setAttempt(null)
     } finally {
       setSubmitting(false)
     }
   }
 
-  const color = (pos) => {
-    if (!puzzle) return 'border-opacity-20 border-white'
-    const { p1, p2 } = buildOccupancy(puzzle.p1_Moves, puzzle.p2_Moves)
-    if (p1.has(pos)) return 'border-opacity-50 border-blue-700 bg-blue-500'
-    if (p2.has(pos)) return 'border-opacity-50 border-red-700 bg-red-500'
-    return 'border-opacity-20 border-white'
-  }
+  if (error) return <Page size="sm"><EmptyState icon={LuPuzzle} title="Couldn't load today's puzzle">{error}</EmptyState></Page>
+  if (!puzzle) return <PageSpinner />
 
-  if (loading || !puzzle) {
-    return <Loading className='mt-24' w='8' h='8' />
-  }
+  const dateLabel = new Date(`${puzzle.date}T12:00:00Z`).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
 
   return (
-    <div className='mx-auto grid max-w-4xl gap-6 mb-6 mt-12 border border-[#646cff] rounded-xl py-10 px-4 sm:px-8'>
-      <h1 className='font-bold text-[#646cff] underline text-3xl sm:text-5xl'>Daily puzzle</h1>
-      <p className='text-gray-400 text-sm max-w-xl'>
-        Blue moves first. Find the winning move for blue. Tap a column to submit (you must be signed in to earn XP).
-      </p>
-      {puzzle.alreadySolved ? (
-        <p className='text-green-400 font-semibold'>Completed today ✓</p>
-      ) : (
-        <p className='text-yellow-200/80 text-sm'>Reward: {puzzle.xpReward} XP</p>
-      )}
-      <div className={boardOuter}>
-        <div className={boardRow}>
-        {[...Array(columns)].map((_, colIndex) => (
-          <div
-            key={colIndex}
-            role='button'
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && tryColumn(colIndex)}
-            className={`${boardCol} ${puzzle.alreadySolved ? '' : 'cursor-pointer'}`}
-            onClick={() => !puzzle.alreadySolved && tryColumn(colIndex)}
-          >
-            {[...Array(rows)].map((_, rowIndex) => {
-              const pos = rowIndex.toString() + colIndex.toString()
-              return (
-                <div
-                  key={rowIndex}
-                  className={pieceClass(color(pos), '')}
-                />
-              )
-            })}
-          </div>
-        ))}
+    <Page size="md">
+      <PageHeader
+        eyebrow={dateLabel}
+        title="Daily puzzle"
+        subtitle="You're Red and it's your move. Find the one drop that connects four."
+        actions={<Badge tone="warning" className="text-sm">+{puzzle.xpReward} XP</Badge>}
+      />
+      <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_16rem]">
+        <div className="relative">
+          <Board
+            p1Moves={p1}
+            p2Moves={puzzle.p2_Moves}
+            lastMove={attempt || solved}
+            winLine={winLine}
+            interactive={!solved && !submitting && !attempt}
+            previewPlayer="p1"
+            onPlay={tryColumn}
+            label="Puzzle board: choose the winning column"
+          />
+        </div>
+        <div className="space-y-4">
+          {solved ? (
+            <Card className="border-success/40 bg-success/5">
+              <LuCheckCircle className="mb-2 size-7 text-success" aria-hidden />
+              <h2 className="text-lg font-semibold">Solved!</h2>
+              <p className="mt-1 text-sm text-muted">
+                {signedIn ? 'Come back tomorrow for a new puzzle.' : 'Nice! Create an account to earn XP for every puzzle you solve.'}
+              </p>
+              {!signedIn && <Button to="/signup" className="mt-4" block>Create account</Button>}
+              {signedIn && <Button to="/ai" variant="secondary" className="mt-4" block>Keep practising vs CPU</Button>}
+            </Card>
+          ) : (
+            <Card>
+              <h2 className="font-semibold">How it works</h2>
+              <p className="mt-1 text-sm text-muted">Tap a column to drop your disc. {signedIn ? 'Solve it to earn XP.' : 'Sign in to earn XP for solving it.'}</p>
+              {tries > 0 && <Alert tone="info" className="mt-3">Not quite. That doesn&apos;t connect four. Try again!</Alert>}
+              {showHint ? (
+                <p className="mt-4 rounded-xl bg-warning/10 p-3 text-sm text-warning">💡 {puzzle.hint}</p>
+              ) : (
+                <Button variant="secondary" icon={LuLightbulb} className="mt-4" block onClick={() => setShowHint(true)}>Show hint</Button>
+              )}
+            </Card>
+          )}
+          <p className="text-center text-xs text-subtle">
+            {puzzle.solvedCount ? `${puzzle.solvedCount} player${puzzle.solvedCount > 1 ? 's' : ''} solved it today` : 'Be the first to solve today’s puzzle'}
+          </p>
         </div>
       </div>
-    </div>
+    </Page>
   )
 }
-
-export default DailyChallenge

@@ -1,101 +1,82 @@
-import React, { useEffect, useState, useCallback } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { getSocket } from '../contexts/socketInstance'
-import { getGame } from '../services/game.service'
-import Loading from '../components/Loading'
-import UserAvatar from '../components/UserAvatar'
-import { boardOuter, boardRow, boardCol, pieceClass } from '../game/boardLayout'
+import { useParams } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { LuEye, LuMessageCircle } from 'react-icons/lu'
+import { Board } from '../components/game/Board'
+import { PlayerCard } from '../components/game/PlayerCard'
+import { RoundOverlay } from '../components/game/RoundOverlay'
+import { GameLayout, TurnStatus } from '../components/game/GameLayout'
+import { useOnlineGame } from '../game/useOnlineGame'
+import { selectUser } from '../store/userSlice'
+import { Badge, Button, Card, CardHeader, EmptyState, LiveDot, Page, PageSpinner } from '../ui'
 
-const rows = 6
-const columns = 7
+const idOf = (u) => (u && typeof u === 'object' ? u._id : u) || null
 
-function SpectateGame() {
+export default function SpectateGame() {
   const { id } = useParams()
-  const [game, setGame] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const me = useSelector(selectUser)
+  const g = useOnlineGame(id, me, { spectate: true })
+  const game = g.game
 
-  const refresh = useCallback(() => {
-    if (!id) return
-    getGame(id)
-      .then((res) => setGame(res.data.game))
-      .catch(() => setGame(null))
-      .finally(() => setLoading(false))
-  }, [id])
-
-  useEffect(() => {
-    refresh()
-  }, [refresh])
-
-  useEffect(() => {
-    const socket = getSocket()
-    if (!socket || !id) return
-    socket.emit('spectateGame', id)
-    const onMove = (data) => {
-      if (data?.newGame?._id && String(data.newGame._id) === String(id)) setGame(data.newGame)
-    }
-    socket.on('newMove', onMove)
-    return () => {
-      socket.emit('stopSpectating', id)
-      socket.off('newMove', onMove)
-    }
-  }, [id])
-
-  const color = (pos) => {
-    if (!game?.p1_Moves) return 'border-opacity-20 border-white'
-    if (game.p1_Moves.indexOf(pos) !== -1) {
-      return 'border-opacity-50 border-blue-700 bg-blue-500'
-    }
-    if (game.p2_Moves.indexOf(pos) !== -1) {
-      return 'border-opacity-50 border-red-700 bg-red-500'
-    }
-    return 'border-opacity-20 border-white'
-  }
-
-  if (loading) {
-    return <Loading className='mt-24' w='8' h='8' />
-  }
-  if (!game?.p2) {
+  if (g.status === 'loading') return <PageSpinner />
+  if (!game || !game.p2) {
     return (
-      <div className='mt-16 text-center'>
-        <p className='text-gray-400 mb-4'>This game is not active for spectating.</p>
-        <Link to='/watch'><button>Back to list</button></Link>
-      </div>
+      <Page size="sm">
+        <EmptyState icon={LuEye} title={g.status === 'notFound' ? 'Game not found' : 'Not started yet'} action={<Button to="/watch">Browse live games</Button>}>
+          {g.status === 'notFound' ? 'This game has ended or expired.' : "This game is still waiting for a second player."}
+        </EmptyState>
+      </Page>
     )
   }
 
+  const names = { p1: game.p1.username, p2: game.p2.username }
+  const roundOver = !!game.roundEnd
+  const isPlayer = !!g.seat
+
+  const card = (seat) => {
+    const active = !roundOver && g.turn === seat
+    return (
+      <PlayerCard
+        player={seat}
+        name={game[seat].username}
+        avatarId={game[seat].avatar}
+        score={game.score[seat]}
+        active={active}
+        online={!!g.online[idOf(game[seat])]}
+        subtitle={active ? 'Thinking…' : `Level ${game[seat].lvl ?? 1}`}
+        timeLeft={active ? g.timeLeft : null}
+        turnMs={g.turnMs}
+        align={seat === 'p2' ? 'right' : 'left'}
+      />
+    )
+  }
+
+  const end = game.roundEnd
   return (
-    <div className='relative mx-auto mt-14 max-w-4xl border border-[#646cff] rounded-xl pb-16 pt-10 px-2 sm:px-6'>
-      <Link to='/watch' className='absolute left-3 top-3 z-10 text-sm text-[#646cff] underline'>← Games</Link>
-      <p className='text-center text-xs uppercase tracking-widest text-gray-500 mb-2'>Spectator</p>
-      <div className='text-[#646cff] font-bold text-2xl md:text-4xl mt-6 flex flex-wrap items-center justify-center gap-2'>
-        <UserAvatar avatarId={game.p1?.avatar} sizePx={40} className='rounded-full' />
-        <span>{game.p1?.username}</span>
-        <span className='text-gray-500'>—</span>
-        <span>{game.p2?.username}</span>
-        <UserAvatar avatarId={game.p2?.avatar} sizePx={40} className='rounded-full' />
-      </div>
-      <div className='text-[#646cff] font-bold text-2xl md:text-4xl mb-8 text-center'>
-        {game.score?.p1 ?? 0} - {game.score?.p2 ?? 0}
-      </div>
-      <div className={`${boardOuter} pointer-events-none select-none`}>
-        <div className={boardRow}>
-        {[...Array(columns)].map((_, colIndex) => (
-          <div key={colIndex} className={boardCol}>
-            {[...Array(rows)].map((_, rowIndex) => {
-              const pos = rowIndex.toString() + colIndex.toString()
-              return (
-                <div
-                  key={rowIndex}
-                  className={pieceClass(color(pos), '')}
-                />
-              )
-            })}
-          </div>
-        ))}
-        </div>
-      </div>
-    </div>
+    <GameLayout
+      title={`${names.p1} vs ${names.p2}`}
+      badge={<Badge tone="danger" icon={LiveDot}>Live</Badge>}
+      back="/watch"
+      backLabel="Live games"
+      players={<>{card('p1')}{card('p2')}</>}
+      board={<Board p1Moves={game.p1_Moves} p2Moves={game.p2_Moves} lastMove={g.lastMove} winLine={g.winLine} label="Board (spectating)" />}
+      overlay={
+        end && (
+          <RoundOverlay
+            tone={end.winner === 'draw' ? 'draw' : 'neutral'}
+            emoji={end.winner === 'draw' ? '🤝' : '🏁'}
+            title={end.winner === 'draw' ? 'Draw' : `${names[end.winner]} wins the round`}
+            subtitle={`Score ${game.score.p1}–${game.score.p2} · waiting for the next round`}
+          />
+        )
+      }
+      status={!roundOver && <TurnStatus player={g.turn}>{names[g.turn]} to play</TurnStatus>}
+      controls={isPlayer && <Button to={`/online/${id}`}>You’re in this game. Open it.</Button>}
+      side={
+        <Card>
+          <CardHeader icon={LuMessageCircle} title="Spectating" />
+          <p className="text-sm text-muted">You’re watching live. Moves appear instantly. Chat is private to the players.</p>
+        </Card>
+      }
+    />
   )
 }
-
-export default SpectateGame

@@ -8,12 +8,13 @@
 
 ## Features
 
-- Two-player mode (local or online).
-- Simple and intuitive UI for easy gameplay.
-- Visual indicators for winning connections.
-- Fully responsive design, optimized for both desktop and mobile.
-- Option to track player statistics and XP levels.
-- Leaderboard for all players.
+- **Online multiplayer** in real time over WebSockets, with a 30-second turn timer, rematches, resign and in-game chat.
+- **Play vs CPU** (easy / medium / hard minimax bot) and **pass & play** on one device.
+- **Daily puzzle** (find the winning move, +50 XP), **4-player tournaments** and **live spectating**.
+- **Friends** with live online status and one-click game invites.
+- **Progression**: XP, levels, win/loss/draw stats, achievements, leaderboard and round history.
+- Server-authoritative rules: the API validates every move and detects wins and draws, so clients can't cheat.
+- Responsive design for phones and desktops, light and dark themes, keyboard-playable board.
 
 ## Technologies Used
 
@@ -21,6 +22,16 @@
 - **Backend**: Node.js, Express
 - **Database**: MongoDB
 - **Hosting**: Vercel (frontend), Render (backend)
+
+## Run locally
+
+```bash
+cp .env.example .env   # VITE_API_URL=http://localhost:3000
+npm install
+npm run dev            # http://localhost:5173
+```
+
+When deploying (Vercel), set `VITE_API_URL` to the backend URL, and make sure the backend's `FRONT_URL` contains this site's URL.
 
 ## How to Play
 
