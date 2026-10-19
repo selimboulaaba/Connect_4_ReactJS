@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { LuRotateCcw } from 'react-icons/lu'
-import { Board } from '../components/game/Board'
-import { PlayerCard } from '../components/game/PlayerCard'
-import { RoundOverlay } from '../components/game/RoundOverlay'
-import { GameLayout, TurnStatus } from '../components/game/GameLayout'
-import { useLocalMatch } from '../game/useLocalMatch'
-import { getBestMove } from '../game/ai'
-import { playChime } from '../lib/sound'
-import { selectUser } from '../store/userSlice'
-import { Button, IconButton, SegmentedControl, Spinner } from '../ui'
+import { RotateCcw } from 'lucide-react'
+import { Board } from '@/components/game/Board'
+import { ScoreRail } from '@/components/game/ScoreRail'
+import { RoundOverlay } from '@/components/game/RoundOverlay'
+import { GameLayout, TurnStatus } from '@/components/game/GameLayout'
+import { useLocalMatch } from '@/game/useLocalMatch'
+import { getBestMove } from '@/game/ai'
+import { playChime } from '@/lib/sound'
+import { selectUser } from '@/store/userSlice'
+import { Button, IconButton, SegmentedControl } from '@/ui'
 
 const LEVELS = [
   { value: 'easy', label: 'Easy' },
@@ -33,8 +33,9 @@ export default function AIGame() {
   const m = useLocalMatch({ loseSound: cpuWinsSound })
   const over = m.result.winner
   const cpuTurn = m.turn === 'p2'
+  const levelLabel = LEVELS.find((l) => l.value === level).label
 
-  // CPU plays p2 after a short "thinking" pause so moves are easy to follow.
+  // The computer plays yellow, after a short pause so its moves are easy to follow.
   const { p1, p2, play } = m
   useEffect(() => {
     if (!cpuTurn) return
@@ -48,17 +49,15 @@ export default function AIGame() {
     m.resetMatch()
   }
 
-  const name = user?.username || 'You'
-
   return (
     <GameLayout
-      title="Play vs CPU"
-      actions={<IconButton icon={LuRotateCcw} label="Reset score" onClick={m.resetMatch} />}
-      players={
-        <>
-          <PlayerCard player="p1" name={name} avatarId={user?.avatar} score={m.score.p1} active={m.turn === 'p1'} isYou subtitle={m.turn === 'p1' ? 'Your turn' : 'Waiting'} />
-          <PlayerCard player="p2" name="CPU" avatarId="avatar_9" score={m.score.p2} active={cpuTurn} subtitle={`${LEVELS.find((l) => l.value === level).label} bot`} align="right" />
-        </>
+      title="Play the computer"
+      actions={<IconButton icon={RotateCcw} label="Reset the score" onClick={m.resetMatch} />}
+      rail={
+        <ScoreRail
+          left={{ player: 'p1', name: user?.username || 'You', avatarId: user?.avatar, score: m.score.p1, active: m.turn === 'p1', isYou: !!user, subtitle: 'Red' }}
+          right={{ player: 'p2', name: 'Computer', avatarId: 'avatar_10', score: m.score.p2, active: cpuTurn, subtitle: `${levelLabel} level` }}
+        />
       }
       board={
         <Board
@@ -74,24 +73,16 @@ export default function AIGame() {
       overlay={
         over && (
           <RoundOverlay
-            tone={over === 'draw' ? 'draw' : over === 'p1' ? 'win' : 'lose'}
-            emoji={over === 'draw' ? '🤝' : over === 'p1' ? '🏆' : '🤖'}
-            title={over === 'draw' ? "It's a draw" : over === 'p1' ? 'You win!' : 'CPU wins'}
-            subtitle={over === 'p2' ? 'Shake it off and try again.' : `Score ${m.score.p1} – ${m.score.p2}`}
+            winner={over}
+            title={over === 'draw' ? 'Board full' : over === 'p1' ? 'You win' : 'The computer wins'}
+            subtitle={over === 'p2' && level !== 'easy' ? `Try easy, or have another go at ${levelLabel.toLowerCase()}.` : `${m.score.p1} to ${m.score.p2} so far.`}
           >
             <Button onClick={m.nextRound}>Next round</Button>
           </RoundOverlay>
         )
       }
-      status={
-        !over &&
-        (cpuTurn ? (
-          <TurnStatus player="p2"><Spinner className="size-3.5" /> CPU is thinking…</TurnStatus>
-        ) : (
-          <TurnStatus player="p1">Your turn</TurnStatus>
-        ))
-      }
-      controls={<SegmentedControl label="Difficulty" options={LEVELS} value={level} onChange={changeLevel} />}
+      status={!over && (cpuTurn ? <TurnStatus player="p2">The computer is thinking</TurnStatus> : <TurnStatus player="p1">Your turn</TurnStatus>)}
+      controls={<SegmentedControl label="Computer level" options={LEVELS} value={level} onChange={changeLevel} />}
     />
   )
 }

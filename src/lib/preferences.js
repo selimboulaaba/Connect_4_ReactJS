@@ -1,4 +1,4 @@
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useSyncExternalStore } from 'react'
 
 // Small persisted preferences (theme, sound) shared across components.
 const listeners = new Set()
@@ -12,7 +12,7 @@ const read = (key, fallback) => {
 const write = (key, value) => {
   try {
     localStorage.setItem(key, value)
-  } catch { /* ignore */ }
+  } catch { /* storage unavailable */ }
   listeners.forEach((l) => l())
 }
 const subscribe = (l) => {
@@ -20,14 +20,26 @@ const subscribe = (l) => {
   return () => listeners.delete(l)
 }
 
+/** pref: 'system' | 'light' | 'dark'. resolved: what is actually shown. */
 export function useTheme() {
-  const theme = useSyncExternalStore(subscribe, () => document.documentElement.dataset.theme || 'dark')
-  const toggle = useCallback(() => {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    document.documentElement.dataset.theme = next
-    write('theme', next)
-  }, [theme])
-  return { theme, toggle }
+  const pref = useSyncExternalStore(subscribe, () => read('theme', 'system'))
+  const resolved = useSyncExternalStore(subscribe, () => document.documentElement.dataset.theme || 'light')
+
+  // Re-render when the device setting flips while on "system".
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const onChange = () => listeners.forEach((l) => l())
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  const setPref = useCallback((value) => {
+    write('theme', value)
+    window.__applyTheme?.()
+    listeners.forEach((l) => l())
+  }, [])
+
+  return { pref, resolved, setPref }
 }
 
 export const isMuted = () => read('muted', 'false') === 'true'

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { LuSend } from 'react-icons/lu'
-import { IconButton, cn } from '../../ui'
+import { Send } from 'lucide-react'
+import { IconButton } from '@/ui'
+import { cn } from '@/lib/utils'
 
-const QUICK = ['GG! 🤝', 'Nice move!', 'Lucky… 😅', '🤔', '😎', 'Rematch?']
+const QUICK = ['Good game!', 'Nice move', 'Lucky one…', 'Rematch?', '😅', '🔥']
 
 export function GameChat({ messages, me, onSend, disabled }) {
   const [text, setText] = useState('')
@@ -15,24 +16,23 @@ export function GameChat({ messages, me, onSend, disabled }) {
 
   const send = (value) => {
     const v = value.trim()
-    if (!v || disabled) return
-    onSend(v)
+    if (v && !disabled) onSend(v)
   }
 
   return (
     <div className="flex h-full flex-col">
-      <div ref={listRef} className="scrollbar-thin flex h-56 flex-col gap-1.5 overflow-y-auto pr-1 lg:h-auto lg:min-h-56 lg:flex-1" aria-live="polite">
+      <div ref={listRef} className="scrollbar-thin flex h-56 flex-col gap-1.5 overflow-y-auto pr-1 lg:h-auto lg:min-h-64 lg:flex-1" aria-live="polite">
         {messages.length === 0 ? (
-          <p className="m-auto text-center text-sm text-subtle">No messages yet. Say hi! 👋</p>
+          <p className="m-auto text-center text-sm text-muted-foreground">Messages you send appear here.</p>
         ) : (
           messages.map((m, i) => {
             const mine = m.username === me
             return (
-              <div key={i} className={cn('flex flex-col', mine ? 'items-end' : 'items-start')}>
+              <div key={i} className={cn('flex', mine ? 'justify-end' : 'justify-start')}>
                 <span
                   className={cn(
-                    'max-w-[80%] break-words rounded-2xl px-3 py-1.5 text-sm',
-                    mine ? 'rounded-br-md bg-primary text-primary-fg' : 'rounded-bl-md bg-raised text-fg'
+                    'max-w-[80%] break-words rounded-[1.1rem] border-2 border-ink px-3 py-1.5 text-sm font-medium',
+                    mine ? 'rounded-br-md bg-board text-on-board' : 'rounded-bl-md bg-muted text-foreground'
                   )}
                 >
                   {m.message}
@@ -49,7 +49,7 @@ export function GameChat({ messages, me, onSend, disabled }) {
             type="button"
             disabled={disabled}
             onClick={() => send(q)}
-            className="shrink-0 rounded-full border border-line bg-bg px-3 py-1 text-xs font-medium text-muted transition hover:border-primary/50 hover:text-fg disabled:opacity-50"
+            className="shrink-0 rounded-full border-2 border-ink/25 px-3 py-1 text-sm font-bold text-muted-foreground transition-colors hover:border-ink hover:text-foreground disabled:opacity-50"
           >
             {q}
           </button>
@@ -68,11 +68,11 @@ export function GameChat({ messages, me, onSend, disabled }) {
           onChange={(e) => setText(e.target.value)}
           maxLength={200}
           disabled={disabled}
-          placeholder={disabled ? 'Chat opens when your opponent joins' : 'Message…'}
+          placeholder={disabled ? 'Chat opens when your opponent joins' : 'Write a message'}
           aria-label="Chat message"
-          className="h-10 min-w-0 flex-1 rounded-xl border border-line bg-bg px-3 text-sm placeholder:text-subtle focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/15"
+          className="h-11 min-w-0 flex-1 rounded-btn border-3 border-ink bg-card px-3.5 placeholder:text-muted-foreground/80 focus:outline-none focus:ring-4 focus:ring-ring/35"
         />
-        <IconButton type="submit" icon={LuSend} label="Send" variant="primary" disabled={disabled || !text.trim()} />
+        <IconButton type="submit" icon={Send} label="Send message" variant="board" disabled={disabled || !text.trim()} />
       </form>
     </div>
   )

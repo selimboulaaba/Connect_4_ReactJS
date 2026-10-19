@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
-import { LuUser, LuLock } from 'react-icons/lu'
-import { AuthLayout } from '../components/AuthLayout'
-import { errorMessage, usersApi } from '../lib/api'
-import { signedIn } from '../store/userSlice'
-import { Alert, Button, Input } from '../ui'
+import { AuthLayout } from '@/components/AuthLayout'
+import { errorMessage, usersApi } from '@/lib/api'
+import { signedIn } from '@/store/userSlice'
+import { Alert, Button, Input } from '@/ui'
 
 const USERNAME_RE = /^[a-zA-Z0-9_.-]{3,20}$/
 
@@ -19,9 +18,9 @@ export default function Signup() {
   const from = useLocation().state?.from || '/'
 
   const errors = {
-    username: !USERNAME_RE.test(form.username.trim()) ? '3–20 characters: letters, numbers, "_", "-" or ".".' : null,
-    password: form.password.length < 6 ? 'At least 6 characters.' : null,
-    confirm: form.confirm !== form.password ? "Passwords don't match." : null,
+    username: !USERNAME_RE.test(form.username.trim()) ? 'Use 3 to 20 letters, numbers, dots, dashes or underscores.' : null,
+    password: form.password.length < 6 ? 'Use at least 6 characters.' : null,
+    confirm: form.confirm !== form.password ? 'The two passwords are different.' : null,
   }
   const show = (k) => (touched[k] || touched.submit) && errors[k]
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
@@ -45,16 +44,16 @@ export default function Signup() {
 
   return (
     <AuthLayout
-      title="Create your account"
-      subtitle="It's free. Pick a name your friends will recognise."
-      footer={<>Already have an account? <Link to="/signin" state={{ from }} className="font-semibold text-primary hover:underline">Sign in</Link></>}
+      title="Create an account"
+      subtitle="Free. Your friends will find you by your username."
+      footer={<>Already have one? <Link to="/signin" state={{ from }} className="font-extrabold text-foreground underline decoration-board decoration-[3px] underline-offset-4">Sign in</Link></>}
     >
       <form onSubmit={submit} className="space-y-4" noValidate>
         {error && <Alert>{error}</Alert>}
-        <Input label="Username" icon={LuUser} autoComplete="username" autoFocus value={form.username} onChange={set('username')} onBlur={blur('username')} error={show('username')} hint="3–20 characters" />
-        <Input label="Password" icon={LuLock} type="password" autoComplete="new-password" value={form.password} onChange={set('password')} onBlur={blur('password')} error={show('password')} />
-        <Input label="Confirm password" icon={LuLock} type="password" autoComplete="new-password" value={form.confirm} onChange={set('confirm')} onBlur={blur('confirm')} error={show('confirm')} />
-        <Button type="submit" size="lg" block loading={loading}>Create account</Button>
+        <Input label="Username" autoComplete="username" autoFocus value={form.username} onChange={set('username')} onBlur={blur('username')} error={show('username')} hint="3 to 20 characters" />
+        <Input label="Password" type="password" autoComplete="new-password" value={form.password} onChange={set('password')} onBlur={blur('password')} error={show('password')} />
+        <Input label="Repeat password" type="password" autoComplete="new-password" value={form.confirm} onChange={set('confirm')} onBlur={blur('confirm')} error={show('confirm')} />
+        <Button type="submit" size="lg" block loading={loading} className="!mt-6">Create account</Button>
       </form>
     </AuthLayout>
   )

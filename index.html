@@ -4,21 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Connect 4: Play online with friends</title>
-    <meta name="description" content="Play Connect 4 online with friends, against the computer, or on the same device. Daily puzzles, tournaments and leaderboards." />
-    <meta name="theme-color" content="#0a0f1e" />
+    <meta name="description" content="Play Connect 4 online with friends, against the computer, or on one device. Daily puzzles, tournaments and a leaderboard." />
+    <meta name="theme-color" content="#1F4FD8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Titan+One&display=swap" rel="stylesheet" />
     <script>
-      // Apply the saved theme before first paint to avoid a flash.
-      try {
-        var t = localStorage.getItem('theme')
-        if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
-        document.documentElement.dataset.theme = t
-      } catch (e) {
-        document.documentElement.dataset.theme = 'dark'
-      }
+      // Theme: "system" (default) follows the device; "light"/"dark" are manual overrides.
+      ;(function () {
+        var pref = 'system'
+        try { pref = localStorage.getItem('theme') || 'system' } catch (e) {}
+        var mq = window.matchMedia('(prefers-color-scheme: dark)')
+        var apply = function () {
+          var p = 'system'
+          try { p = localStorage.getItem('theme') || 'system' } catch (e) {}
+          document.documentElement.dataset.theme = p === 'system' ? (mq.matches ? 'dark' : 'light') : p
+        }
+        apply()
+        mq.addEventListener('change', apply)
+        window.__applyTheme = apply
+      })()
     </script>
   </head>
   <body>

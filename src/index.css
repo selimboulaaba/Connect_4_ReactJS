@@ -2,48 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Design tokens (HSL channels so Tailwind can apply opacity). */
+/*
+  Toy box palette. HSL channels so Tailwind can apply opacity.
+  board #1F4FD8 · ink #0E2A7A · sky #EAF1FF · red #E8333C · yellow #FFC72C
+*/
 :root {
-  --bg: 220 33% 97%;
-  --surface: 0 0% 100%;
-  --raised: 220 30% 94%;
-  --line: 220 20% 87%;
-  --fg: 224 40% 12%;
-  --muted: 220 13% 38%;
-  --subtle: 220 10% 55%;
-  --primary: 237 78% 58%;
-  --primary-strong: 237 70% 50%;
-  --primary-fg: 0 0% 100%;
-  --p1: 352 82% 54%;
-  --p2: 40 96% 50%;
-  --board: 232 72% 52%;
-  --hole: 225 60% 97%;
-  --success: 152 62% 38%;
-  --danger: 0 74% 52%;
-  --warning: 32 92% 46%;
-  --shadow: 224 40% 20%;
+  --background: 220 100% 96%;
+  --foreground: 224 79% 20%;
+  --card: 0 0% 100%;
+  --muted: 220 70% 91%;
+  --muted-foreground: 224 32% 38%;
+  --accent: 220 95% 92%;
+  --ink: 224 79% 27%;
+  --board: 224 75% 48%;
+  --board-rim: 224 78% 38%;
+  --on-board: 0 0% 100%;
+  --hole: 220 100% 96%;
+  --red: 357 79% 56%;
+  --on-red: 0 0% 100%;
+  --yellow: 44 100% 59%;
+  --on-yellow: 224 79% 20%;
+  --green: 148 68% 34%;
+  --ring: 224 75% 48%;
   color-scheme: light;
 }
 
+/* The same toy under low light: deep cobalt, never near-black. */
 :root[data-theme='dark'] {
-  --bg: 225 42% 6%;
-  --surface: 224 36% 10%;
-  --raised: 224 30% 14%;
-  --line: 224 24% 20%;
-  --fg: 220 30% 96%;
-  --muted: 220 16% 68%;
-  --subtle: 220 12% 48%;
-  --primary: 237 100% 70%;
-  --primary-strong: 237 90% 63%;
-  --primary-fg: 0 0% 100%;
-  --p1: 352 90% 62%;
-  --p2: 43 96% 56%;
-  --board: 232 64% 40%;
-  --hole: 225 45% 7%;
-  --success: 152 60% 50%;
-  --danger: 0 84% 64%;
-  --warning: 38 92% 58%;
-  --shadow: 225 60% 2%;
+  --background: 226 79% 17%;
+  --foreground: 220 100% 96%;
+  --card: 225 66% 24%;
+  --muted: 225 58% 29%;
+  --muted-foreground: 221 70% 82%;
+  --accent: 225 60% 31%;
+  --ink: 228 86% 8%;
+  --board: 224 82% 52%;
+  --board-rim: 224 80% 40%;
+  --on-board: 0 0% 100%;
+  --hole: 226 79% 14%;
+  --red: 357 85% 60%;
+  --on-red: 0 0% 100%;
+  --yellow: 44 100% 60%;
+  --on-yellow: 228 86% 10%;
+  --green: 148 60% 52%;
+  --ring: 44 100% 60%;
   color-scheme: dark;
 }
 
@@ -52,19 +54,21 @@
     -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-bg text-fg font-sans antialiased;
+    @apply bg-background font-sans text-foreground antialiased;
     min-width: 320px;
-    text-rendering: optimizeLegibility;
+    font-size: 1rem;
+    line-height: 1.55;
   }
   h1, h2, h3 {
-    @apply font-display tracking-tight;
+    @apply text-balance;
   }
   :focus-visible {
-    outline: 2px solid hsl(var(--primary));
+    outline: 3px solid hsl(var(--ring));
     outline-offset: 2px;
   }
   ::selection {
-    background: hsl(var(--primary) / 0.25);
+    background: hsl(var(--yellow) / 0.6);
+    color: hsl(var(--on-yellow));
   }
 }
 
@@ -74,34 +78,53 @@
   }
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--line)) transparent;
   }
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
-/* Board: the classic blue frame with punched holes. */
-.board-frame {
-  background:
-    radial-gradient(120% 80% at 50% 0%, hsl(0 0% 100% / 0.14), transparent 60%),
-    hsl(var(--board));
-  box-shadow:
-    inset 0 2px 0 hsl(0 0% 100% / 0.18),
-    inset 0 -6px 0 hsl(var(--shadow) / 0.25),
-    0 24px 48px -24px hsl(var(--board) / 0.8);
+/* Toy pieces live in the components layer so utilities (absolute, size-*) can override them. */
+@layer components {
+  /* ---------- Discs: the classic checker with a raised inner ring ---------- */
+  .disc {
+    position: relative;
+    border-radius: 9999px;
+    box-shadow: inset 0 -3px 0 hsl(0 0% 0% / 0.18);
+  }
+  .disc::after {
+    content: '';
+    position: absolute;
+    inset: 18%;
+    border-radius: 9999px;
+    border: max(2px, 0.07em) solid hsl(0 0% 0% / 0.14);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.35);
+  }
+  .disc-red { background: hsl(var(--red)); }
+  .disc-yellow { background: hsl(var(--yellow)); }
+
+  /* ---------- The board: moulded frame with punched holes ---------- */
+  .board-frame {
+    background: hsl(var(--board));
+    border: 3px solid hsl(var(--ink));
+    box-shadow:
+      inset 0 3px 0 hsl(0 0% 100% / 0.22),
+      inset 0 -5px 0 hsl(var(--board-rim)),
+      0 6px 0 0 hsl(var(--ink));
+  }
+  .board-hole {
+    background: hsl(var(--hole));
+    box-shadow: inset 0 3px 0 hsl(var(--ink) / 0.35);
+  }
+  /* The stand's two feet. */
+  .board-foot {
+    background: hsl(var(--board));
+    border: 3px solid hsl(var(--ink));
+    border-top: 0;
+    border-radius: 0 0 1rem 1rem;
+    box-shadow: inset 0 -4px 0 hsl(var(--board-rim)), 0 4px 0 0 hsl(var(--ink));
+  }
 }
-.board-hole {
-  background: hsl(var(--hole));
-  box-shadow: inset 0 3px 6px hsl(var(--shadow) / 0.45);
-}
-.disc {
-  box-shadow:
-    inset 0 -4px 0 hsl(0 0% 0% / 0.18),
-    inset 0 3px 0 hsl(0 0% 100% / 0.35);
-}
-.disc-p1 { background: radial-gradient(circle at 35% 30%, hsl(var(--p1) / 0.85), hsl(var(--p1)) 60%); }
-.disc-p2 { background: radial-gradient(circle at 35% 30%, hsl(var(--p2) / 0.85), hsl(var(--p2)) 60%); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

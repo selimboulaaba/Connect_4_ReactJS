@@ -1,30 +1,21 @@
-import { cn } from './cn'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { cn } from '@/lib/utils'
 
-/** options: [{ value, label, icon? }] */
-export function SegmentedControl({ options, value, onChange, label, className, size = 'md' }) {
+/** Single-choice pill switch (Radix toggle group: arrow-key navigation built in). options: [{ value, label }] */
+export function SegmentedControl({ options, value, onChange, label, className }) {
   return (
-    <div role="radiogroup" aria-label={label} className={cn('inline-flex rounded-xl bg-raised p-1 ring-1 ring-inset ring-line', className)}>
-      {options.map((o) => {
-        const active = o.value === value
-        const Icon = o.icon
-        return (
-          <button
-            key={o.value}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            onClick={() => onChange(o.value)}
-            className={cn(
-              'inline-flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg font-semibold transition',
-              size === 'sm' ? 'h-7 px-2.5 text-xs' : 'h-8 px-3.5 text-sm',
-              active ? 'bg-surface text-fg shadow-sm' : 'text-muted hover:text-fg'
-            )}
-          >
-            {Icon && <Icon className="size-4" aria-hidden />}
-            {o.label}
-          </button>
-        )
-      })}
-    </div>
+    <ToggleGroup
+      type="single"
+      value={value}
+      onValueChange={(v) => v && onChange(v)}
+      aria-label={label}
+      className={cn('inline-flex rounded-full border-3 border-ink bg-card p-1', className)}
+    >
+      {options.map((o) => (
+        <ToggleGroupItem key={o.value} value={o.value} aria-label={o.label}>
+          {o.label}
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
   )
 }

@@ -11,6 +11,10 @@ module.exports = {
   parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
   settings: { react: { version: '18.2' } },
   plugins: ['react-refresh'],
+  overrides: [
+    // shadcn/ui primitives export their variant helpers next to components.
+    { files: ['src/components/ui/**'], rules: { 'react-refresh/only-export-components': 'off' } },
+  ],
   rules: {
     'react/jsx-no-target-blank': 'off',
     'react/prop-types': 'off',

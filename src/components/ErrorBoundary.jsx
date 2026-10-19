@@ -1,6 +1,5 @@
 import { Component } from 'react'
-import { LuAlertTriangle } from 'react-icons/lu'
-import { Button, EmptyState, Page } from '../ui'
+import { Button, EmptyState, Page } from '@/ui'
 
 /** Shows a recovery screen instead of a blank page if something throws while rendering. */
 export class ErrorBoundary extends Component {
@@ -23,12 +22,8 @@ export class ErrorBoundary extends Component {
     if (!this.state.error) return this.props.children
     return (
       <Page size="sm">
-        <EmptyState
-          icon={LuAlertTriangle}
-          title="Something went wrong"
-          action={<Button onClick={() => window.location.reload()}>Reload page</Button>}
-        >
-          An unexpected error occurred. Reloading usually fixes it.
+        <EmptyState title="This page stopped working" action={<Button onClick={() => window.location.reload()}>Reload the page</Button>}>
+          Reloading usually fixes it. Your games and progress are saved on the server.
         </EmptyState>
       </Page>
     )

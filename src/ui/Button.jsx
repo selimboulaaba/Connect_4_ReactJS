@@ -1,43 +1,46 @@
 import { forwardRef } from 'react'
 import { Link } from 'react-router-dom'
-import { cn } from './cn'
+import { cva } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
 import { Spinner } from './Spinner'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
-const VARIANTS = {
-  primary: 'bg-primary text-primary-fg shadow-sm hover:bg-primary-strong',
-  secondary: 'bg-raised text-fg ring-1 ring-inset ring-line hover:bg-line/60',
-  ghost: 'text-muted hover:bg-raised hover:text-fg',
-  danger: 'bg-danger text-white hover:bg-danger/90',
-  'danger-ghost': 'text-danger hover:bg-danger/10',
-  success: 'bg-success text-white hover:bg-success/90',
-}
+// Buttons are pieces of moulded plastic: an ink outline sitting on a hard ledge
+// that disappears when pressed.
+const plastic =
+  'border-3 border-ink shadow-plastic active:translate-y-[4px] active:shadow-none disabled:translate-y-0 disabled:shadow-plastic'
 
-const SIZES = {
-  sm: 'h-8 gap-1.5 rounded-lg px-3 text-sm',
-  md: 'h-10 gap-2 rounded-xl px-4 text-sm',
-  lg: 'h-12 gap-2.5 rounded-xl px-6 text-base',
-}
+const buttonVariants = cva(
+  'inline-flex shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap font-bold transition-[transform,box-shadow,background-color,color] duration-75 disabled:pointer-events-none disabled:opacity-55 [&_svg]:size-[1.15em] [&_svg]:shrink-0',
+  {
+    variants: {
+      variant: {
+        primary: `${plastic} bg-yellow text-[hsl(var(--on-yellow))] hover:brightness-105`,
+        board: `${plastic} bg-board text-on-board hover:brightness-110`,
+        secondary: `${plastic} bg-card text-foreground hover:bg-muted`,
+        danger: `${plastic} bg-red text-white hover:brightness-105`,
+        ghost: 'rounded-btn text-muted-foreground hover:bg-muted hover:text-foreground',
+        'danger-ghost': 'rounded-btn text-red hover:bg-red/10',
+      },
+      size: {
+        sm: 'h-9 rounded-btn px-3.5 text-sm',
+        md: 'h-11 rounded-btn px-5 text-[0.95rem]',
+        lg: 'h-14 rounded-[1.1rem] px-7 text-lg',
+      },
+    },
+    defaultVariants: { variant: 'primary', size: 'md' },
+  }
+)
 
-const ICON_SIZES = {
-  sm: 'size-8 rounded-lg',
-  md: 'size-10 rounded-xl',
-  lg: 'size-12 rounded-xl',
-}
-
-const base =
-  'inline-flex shrink-0 select-none items-center justify-center font-semibold transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50'
-
-/**
- * Pass `to` to render a router link styled as a button.
- */
+/** Pass `to` to render a router link that looks like a button. */
 export const Button = forwardRef(function Button(
-  { variant = 'primary', size = 'md', loading = false, block = false, to, icon: Icon, className, children, disabled, type = 'button', ...props },
+  { variant, size, loading = false, block = false, to, icon: Icon, className, children, disabled, type = 'button', ...props },
   ref
 ) {
-  const classes = cn(base, VARIANTS[variant], SIZES[size], block && 'w-full', className)
+  const classes = cn(buttonVariants({ variant, size }), block && 'w-full', className)
   const content = (
     <>
-      {loading ? <Spinner className="size-4" /> : Icon && <Icon className="size-[1.15em]" aria-hidden />}
+      {loading ? <Spinner className="size-[1.1em] border-[2.5px]" /> : Icon && <Icon aria-hidden />}
       {children}
     </>
   )
@@ -55,20 +58,27 @@ export const Button = forwardRef(function Button(
   )
 })
 
+const ICON_SIZES = { sm: 'size-9', md: 'size-11', lg: 'size-14' }
+
+/** Square icon-only button with a tooltip carrying its label. */
 export const IconButton = forwardRef(function IconButton(
   { variant = 'ghost', size = 'md', icon: Icon, label, className, type = 'button', ...props },
   ref
 ) {
   return (
-    <button
-      ref={ref}
-      type={type}
-      aria-label={label}
-      title={label}
-      className={cn(base, VARIANTS[variant], ICON_SIZES[size], className)}
-      {...props}
-    >
-      <Icon className="size-5" aria-hidden />
-    </button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          ref={ref}
+          type={type}
+          aria-label={label}
+          className={cn(buttonVariants({ variant, size }), ICON_SIZES[size], 'px-0', variant === 'ghost' && 'rounded-full', className)}
+          {...props}
+        >
+          <Icon className="!size-5" aria-hidden />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   )
 })

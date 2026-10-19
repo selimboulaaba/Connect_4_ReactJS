@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
-import { LuUser, LuLock } from 'react-icons/lu'
-import { AuthLayout } from '../components/AuthLayout'
-import { errorMessage, usersApi } from '../lib/api'
-import { signedIn } from '../store/userSlice'
-import { Alert, Button, Input } from '../ui'
+import { AuthLayout } from '@/components/AuthLayout'
+import { errorMessage, usersApi } from '@/lib/api'
+import { signedIn } from '@/store/userSlice'
+import { Alert, Button, Input } from '@/ui'
 
 export default function SignIn() {
   const [form, setForm] = useState({ username: '', password: '' })
@@ -32,15 +31,15 @@ export default function SignIn() {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="Sign in to play online, add friends and earn XP."
-      footer={<>New here? <Link to="/signup" state={{ from }} className="font-semibold text-primary hover:underline">Create an account</Link></>}
+      title="Sign in"
+      subtitle="Pick up where you left off."
+      footer={<>No account yet? <Link to="/signup" state={{ from }} className="font-extrabold text-foreground underline decoration-board decoration-[3px] underline-offset-4">Create one</Link></>}
     >
       <form onSubmit={submit} className="space-y-4" noValidate>
         {error && <Alert>{error}</Alert>}
-        <Input label="Username" icon={LuUser} autoComplete="username" autoFocus value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
-        <Input label="Password" icon={LuLock} type="password" autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-        <Button type="submit" size="lg" block loading={loading}>Sign in</Button>
+        <Input label="Username" autoComplete="username" autoFocus value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+        <Input label="Password" type="password" autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+        <Button type="submit" size="lg" block loading={loading} className="!mt-6">Sign in</Button>
       </form>
     </AuthLayout>
   )

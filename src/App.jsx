@@ -6,6 +6,7 @@ import { GlobalEvents } from './components/GlobalEvents'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { SocketProvider } from './lib/socket'
 import { PageSpinner, Toaster } from './ui'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import Home from './pages/Home'
 
 // Pages load on demand to keep the first visit fast.
@@ -57,6 +58,7 @@ function RouteEffects() {
 export default function App() {
   return (
     <BrowserRouter>
+      <TooltipProvider delayDuration={300}>
       <SocketProvider>
         <RouteEffects />
         <GlobalEvents />
@@ -93,6 +95,7 @@ export default function App() {
         </AppShell>
         <Toaster />
       </SocketProvider>
+      </TooltipProvider>
     </BrowserRouter>
   )
 }

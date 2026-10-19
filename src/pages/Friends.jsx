@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { LuSearch, LuUserPlus, LuUserMinus, LuSwords, LuUsers, LuBell, LuTrophy } from 'react-icons/lu'
-import { errorMessage, gamesApi, usersApi } from '../lib/api'
-import { useSocketEvent } from '../lib/socketContext'
-import { selectUser, userLoaded } from '../store/userSlice'
-import { Avatar, Badge, Button, Card, CardHeader, EmptyState, IconButton, Input, Modal, Page, PageHeader, Spinner, toast } from '../ui'
+import { Search, UserPlus, UserMinus, Swords } from 'lucide-react'
+import { errorMessage, gamesApi, usersApi } from '@/lib/api'
+import { useSocketEvent } from '@/lib/socketContext'
+import { selectUser, userLoaded } from '@/store/userSlice'
+import { Avatar, Badge, Button, Card, CardHeader, EmptyState, IconButton, Input, Modal, Page, PageHeader, Spinner, toast } from '@/ui'
 
 function useDebounced(value, ms) {
   const [v, setV] = useState(value)
@@ -24,7 +24,7 @@ export default function Friends() {
   const [results, setResults] = useState(null)
   const [searching, setSearching] = useState(false)
   const [online, setOnline] = useState({})
-  const [pending, setPending] = useState(null) // id of the row with a request in flight
+  const [pending, setPending] = useState(null)
   const [removing, setRemoving] = useState(null)
   const q = useDebounced(query.trim(), 300)
 
@@ -34,10 +34,13 @@ export default function Friends() {
   )
   const friendIds = useMemo(() => new Set(friends.map((f) => f._id)), [friends])
   const invites = me.pendingGameInvites || []
+  const onlineCount = friends.filter((f) => online[f._id]).length
+
+  const refreshOnline = () => usersApi.onlineStatus().then((r) => setOnline(r.data.onlineFriends || {})).catch(() => {})
 
   useEffect(() => {
     usersApi.me().then((r) => dispatch(userLoaded(r.data.user))).catch(() => {})
-    usersApi.onlineStatus().then((r) => setOnline(r.data.onlineFriends || {})).catch(() => {})
+    refreshOnline()
   }, [dispatch])
 
   useSocketEvent('presence', ({ userId, online: isOn }) => setOnline((o) => ({ ...o, [userId]: isOn })))
@@ -58,8 +61,8 @@ export default function Friends() {
     try {
       const { data } = await usersApi.toggleFriend(user._id)
       dispatch(userLoaded(data.user))
-      toast.success(adding ? `${user.username} added to your friends` : `${user.username} removed`)
-      if (adding) usersApi.onlineStatus().then((r) => setOnline(r.data.onlineFriends || {})).catch(() => {})
+      toast.success(adding ? `${user.username} added to your friends` : `${user.username} removed from your friends`)
+      if (adding) refreshOnline()
     } catch (e) {
       toast.error(errorMessage(e))
     } finally {
@@ -93,91 +96,86 @@ export default function Friends() {
     }
   }
 
-  const onlineCount = friends.filter((f) => online[f._id]).length
+  const subtitle = friends.length === 0
+    ? 'Add friends to invite them straight into a game.'
+    : friends.length === 1
+      ? `${friends[0].username} is ${online[friends[0]._id] ? 'online now' : 'offline right now'}.`
+      : onlineCount > 0
+      ? `${onlineCount} of your ${friends.length} friends ${onlineCount === 1 ? 'is' : 'are'} online now.`
+      : `None of your ${friends.length} friends are online right now.`
 
   return (
     <Page>
-      <PageHeader
-        eyebrow="Social"
-        title="Friends"
-        subtitle={friends.length ? `${friends.length} friend${friends.length > 1 ? 's' : ''} · ${onlineCount} online` : 'Add friends to invite them to games.'}
-        actions={<Button to="/leaderboard" variant="secondary" icon={LuTrophy}>Leaderboard</Button>}
-      />
+      <PageHeader title="Friends" subtitle={subtitle} />
 
       {invites.length > 0 && (
-        <Card className="mb-6 border-primary/40 bg-primary/5">
-          <CardHeader icon={LuBell} title="Game invites" subtitle="Friends waiting for you to join" />
-          <ul className="divide-y divide-line">
+        <section className="mb-8 rounded-panel border-3 border-ink bg-yellow p-5 text-[hsl(var(--on-yellow))] shadow-plastic sm:p-6">
+          <h2 className="text-xl font-extrabold">{invites.length === 1 ? 'You have a game invite' : `You have ${invites.length} game invites`}</h2>
+          <ul className="mt-3 space-y-2">
             {invites.map((inv) => {
               const gid = inv.game?._id || inv.game
               return (
-                <li key={gid} className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0">
-                  <span className="min-w-0 flex-1">
-                    <span className="font-semibold">{inv.fromUsername}</span>
-                    <span className="text-muted"> invited you to a game</span>
-                  </span>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="ghost" loading={pending === gid} onClick={() => decline(gid)}>Decline</Button>
-                    <Button size="sm" icon={LuSwords} onClick={() => navigate(`/online/${gid}`)}>Play</Button>
-                  </div>
+                <li key={gid} className="flex flex-wrap items-center gap-3 rounded-btn border-2 border-ink bg-card px-4 py-3 text-foreground">
+                  <span className="min-w-0 flex-1 font-bold">{inv.fromUsername} wants to play</span>
+                  <Button size="sm" variant="ghost" loading={pending === gid} onClick={() => decline(gid)}>Decline</Button>
+                  <Button size="sm" variant="board" icon={Swords} onClick={() => navigate(`/online/${gid}`)}>Play</Button>
                 </li>
               )
             })}
           </ul>
-        </Card>
+        </section>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">
         <Card>
-          <CardHeader icon={LuUsers} title="Your friends" />
+          <CardHeader title="Your friends" />
           {friends.length === 0 ? (
-            <EmptyState icon={LuUserPlus} title="No friends yet">Search for a username to add your first friend.</EmptyState>
+            <EmptyState title="No friends yet">Search for a username on the right to add someone.</EmptyState>
           ) : (
             <ul className="-mx-2">
               {friends.map((f) => (
-                <li key={f._id} className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition hover:bg-raised/60">
+                <li key={f._id} className="flex items-center gap-3 rounded-btn px-2 py-2.5 transition-colors hover:bg-muted">
                   <Avatar avatarId={f.avatar} name={f.username} online={!!online[f._id]} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{f.username}</p>
-                    <p className="text-xs text-subtle">Level {f.lvl} · {online[f._id] ? <span className="text-success">Online</span> : 'Offline'}</p>
+                    <p className="truncate font-extrabold">{f.username}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {online[f._id] ? <span className="font-bold text-green">Online</span> : 'Offline'}, level {f.lvl}
+                    </p>
                   </div>
-                  <Button size="sm" icon={LuSwords} loading={pending === f._id} onClick={() => invite(f)}>Invite</Button>
-                  <IconButton icon={LuUserMinus} label={`Remove ${f.username}`} size="sm" onClick={() => setRemoving(f)} />
+                  <Button size="sm" icon={Swords} loading={pending === f._id} onClick={() => invite(f)}>Invite</Button>
+                  <IconButton icon={UserMinus} label={`Remove ${f.username}`} size="sm" onClick={() => setRemoving(f)} />
                 </li>
               ))}
             </ul>
           )}
         </Card>
 
-        <Card className="h-fit">
-          <CardHeader icon={LuSearch} title="Add friends" />
-          <Input icon={LuSearch} placeholder="Search by username" aria-label="Search players" value={query} onChange={(e) => setQuery(e.target.value)} />
-          <div className="mt-3 min-h-[3rem]">
+        <Card quiet>
+          <CardHeader title="Find players" />
+          <Input icon={Search} placeholder="Search by username" aria-label="Search players" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <div className="mt-3 min-h-12">
             {searching ? (
-              <div className="flex justify-center py-4 text-primary"><Spinner /></div>
+              <div className="flex justify-center py-4 text-board"><Spinner /></div>
             ) : results === null ? (
-              <p className="py-2 text-sm text-subtle">Type at least one character to search.</p>
+              <p className="py-2 text-sm text-muted-foreground">Start typing a name.</p>
             ) : results.length === 0 ? (
-              <p className="py-2 text-sm text-subtle">No players match &ldquo;{q}&rdquo;.</p>
+              <p className="py-2 text-sm text-muted-foreground">Nobody is called “{q}”.</p>
             ) : (
               <ul className="-mx-2">
-                {results.map((u) => {
-                  const isFriend = friendIds.has(u._id)
-                  return (
-                    <li key={u._id} className="flex items-center gap-3 rounded-xl px-2 py-2">
-                      <Avatar avatarId={u.avatar} name={u.username} size="sm" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold">{u.username}</p>
-                        <p className="text-xs text-subtle">Level {u.lvl}</p>
-                      </div>
-                      {isFriend ? (
-                        <Badge tone="success">Friend</Badge>
-                      ) : (
-                        <Button size="sm" variant="secondary" icon={LuUserPlus} loading={pending === u._id} onClick={() => toggleFriend(u, true)}>Add</Button>
-                      )}
-                    </li>
-                  )
-                })}
+                {results.map((u) => (
+                  <li key={u._id} className="flex items-center gap-3 rounded-btn px-2 py-2">
+                    <Avatar avatarId={u.avatar} name={u.username} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-bold">{u.username}</p>
+                      <p className="text-sm text-muted-foreground">Level {u.lvl}</p>
+                    </div>
+                    {friendIds.has(u._id) ? (
+                      <Badge tone="green">Friend</Badge>
+                    ) : (
+                      <Button size="sm" variant="secondary" icon={UserPlus} loading={pending === u._id} onClick={() => toggleFriend(u, true)}>Add</Button>
+                    )}
+                  </li>
+                ))}
               </ul>
             )}
           </div>
@@ -188,11 +186,11 @@ export default function Friends() {
         open={!!removing}
         onClose={() => setRemoving(null)}
         title={`Remove ${removing?.username}?`}
-        description="You can add them back any time."
+        description="They won’t be told. You can add them again whenever you like."
         size="sm"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setRemoving(null)} data-autofocus>Cancel</Button>
+            <Button variant="secondary" onClick={() => setRemoving(null)}>Keep</Button>
             <Button variant="danger" loading={pending === removing?._id} onClick={() => toggleFriend(removing, false)}>Remove</Button>
           </>
         }

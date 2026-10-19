@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { LuWifiOff } from 'react-icons/lu'
-import { usersApi } from '../lib/api'
-import { signedOut, userLoaded } from '../store/userSlice'
-import { Button, EmptyState, Page, PageSpinner } from '../ui'
+import { usersApi } from '@/lib/api'
+import { signedOut, userLoaded } from '@/store/userSlice'
+import { Button, EmptyState, Page, PageSpinner } from '@/ui'
 
 export function AuthGuard() {
   const { token, user, status } = useSelector((s) => s.user)
@@ -15,7 +14,7 @@ export function AuthGuard() {
   if (!token) return <Navigate to="/signin" state={{ from: location.pathname }} replace />
   if (status === 'loading') return <PageSpinner />
   if (!user) {
-    // Signed in, but the profile couldn't load (server asleep or offline).
+    // Signed in, but the profile couldn't load: usually the free server is still waking up.
     const retry = () => {
       setRetrying(true)
       usersApi
@@ -26,8 +25,8 @@ export function AuthGuard() {
     }
     return (
       <Page size="sm">
-        <EmptyState icon={LuWifiOff} title="Can't reach the server" action={<Button onClick={retry} loading={retrying}>Try again</Button>}>
-          The game server may be waking up. This can take up to a minute on the first visit.
+        <EmptyState title="The game server isn't answering yet" action={<Button onClick={retry} loading={retrying}>Try again</Button>}>
+          It sleeps when nobody is playing and takes up to a minute to wake up.
         </EmptyState>
       </Page>
     )

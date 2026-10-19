@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { LuCopy, LuFlag, LuLink, LuShare2, LuEye, LuMessageCircle, LuSwords } from 'react-icons/lu'
-import { Board } from '../components/game/Board'
-import { PlayerCard } from '../components/game/PlayerCard'
-import { RoundOverlay } from '../components/game/RoundOverlay'
-import { GameChat } from '../components/game/GameChat'
-import { GameLayout, TurnStatus } from '../components/game/GameLayout'
-import { useOnlineGame } from '../game/useOnlineGame'
-import { selectUser } from '../store/userSlice'
-import { Badge, Button, Card, CardHeader, EmptyState, IconButton, Modal, Page, PageSpinner, Spinner, toast } from '../ui'
+import { Copy, Flag, Link2, Share2 } from 'lucide-react'
+import { Board } from '@/components/game/Board'
+import { ScoreRail } from '@/components/game/ScoreRail'
+import { RoundOverlay } from '@/components/game/RoundOverlay'
+import { GameChat } from '@/components/game/GameChat'
+import { GameLayout, TurnStatus } from '@/components/game/GameLayout'
+import { useOnlineGame } from '@/game/useOnlineGame'
+import { selectUser } from '@/store/userSlice'
+import { Badge, Button, Card, CardHeader, EmptyState, IconButton, Modal, Page, PageSpinner, Spinner, toast } from '@/ui'
 
 const idOf = (u) => (u && typeof u === 'object' ? u._id : u) || null
 
@@ -18,32 +18,40 @@ async function copy(text, what) {
     await navigator.clipboard.writeText(text)
     toast.success(`${what} copied`)
   } catch {
-    toast.error("Couldn't access the clipboard")
+    toast.error('Copying is blocked in this browser. Select the text and copy it instead.')
   }
 }
 
-function WaitingCard({ game, link }) {
+/** Shown in place of the board until the second player arrives. */
+function WaitingTray({ game, link }) {
   const invited = game.invitedUser
   const canShare = typeof navigator !== 'undefined' && !!navigator.share
   return (
-    <Card className="text-center">
-      <Spinner className="mx-auto mb-3 size-6 text-primary" />
-      <h2 className="text-xl font-semibold">{invited ? `Waiting for ${invited.username}…` : 'Waiting for an opponent'}</h2>
-      <p className="mx-auto mt-1 max-w-sm text-sm text-muted">
-        {invited ? "We've sent them your invite. The game starts as soon as they join." : 'Share this link or game code with a friend. The game starts as soon as they join.'}
-      </p>
-      <div className="mx-auto mt-5 flex max-w-md items-center gap-2 rounded-xl border border-line bg-bg p-1.5 pl-3">
-        <code className="min-w-0 flex-1 truncate text-left text-sm text-muted">{game._id}</code>
-        <IconButton icon={LuCopy} label="Copy game code" size="sm" onClick={() => copy(game._id, 'Game code')} />
+    <Card className="p-6 sm:p-8">
+      <div className="flex items-center gap-3">
+        <Spinner className="size-6 text-board" />
+        <h2 className="font-display text-display-sm">{invited ? `Waiting for ${invited.username}` : 'Waiting for a second player'}</h2>
       </div>
-      <div className="mt-3 flex flex-wrap justify-center gap-2">
-        <Button icon={LuLink} onClick={() => copy(link, 'Invite link')}>Copy invite link</Button>
+      <p className="mt-3 max-w-[48ch] text-muted-foreground">
+        {invited
+          ? 'Your invite has been sent. The game starts the moment they open it.'
+          : 'Send this link to a friend. The game starts the moment they open it.'}
+      </p>
+      <div className="mt-6 flex items-center gap-2 rounded-btn border-3 border-ink bg-background p-1.5 pl-4">
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-muted-foreground">{link}</span>
+        <IconButton icon={Copy} label="Copy the link" size="sm" onClick={() => copy(link, 'Link')} />
+      </div>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <Button icon={Link2} onClick={() => copy(link, 'Link')}>Copy invite link</Button>
         {canShare && (
-          <Button variant="secondary" icon={LuShare2} onClick={() => navigator.share({ title: 'Connect 4', text: 'Play Connect 4 with me!', url: link }).catch(() => {})}>
+          <Button variant="secondary" icon={Share2} onClick={() => navigator.share({ title: 'Connect 4', text: 'Play Connect 4 with me', url: link }).catch(() => {})}>
             Share
           </Button>
         )}
       </div>
+      <p className="mt-5 text-sm text-muted-foreground">
+        Game code: <span className="font-bold text-foreground">{game._id}</span>
+      </p>
     </Card>
   )
 }
@@ -51,14 +59,12 @@ function WaitingCard({ game, link }) {
 function resultCopy(game, seat, names) {
   const { winner, reason } = game.roundEnd
   const opp = seat === 'p1' ? 'p2' : 'p1'
-  if (winner === 'draw') return { tone: 'draw', emoji: '🤝', title: "It's a draw", subtitle: 'The board is full.' }
-  if (!seat) return { tone: 'neutral', emoji: '🏁', title: `${names[winner]} wins the round`, subtitle: reason === 'timeout' ? 'On time.' : reason === 'resign' ? 'By resignation.' : 'Four in a row.' }
+  if (winner === 'draw') return { title: 'Board full', subtitle: 'Nobody connected four.' }
+  if (!seat) return { title: `${names[winner]} wins`, subtitle: reason === 'timeout' ? 'The other player ran out of time.' : reason === 'resign' ? 'The other player resigned.' : 'Four in a row.' }
   if (winner === seat) {
-    const sub = reason === 'timeout' ? `${names[opp]} ran out of time.` : reason === 'resign' ? `${names[opp]} resigned the round.` : 'Four in a row. Nicely played.'
-    return { tone: 'win', emoji: '🏆', title: 'You win!', subtitle: sub }
+    return { title: 'You win', subtitle: reason === 'timeout' ? `${names[opp]} ran out of time.` : reason === 'resign' ? `${names[opp]} resigned the round.` : 'Four in a row.' }
   }
-  const sub = reason === 'timeout' ? 'You ran out of time.' : reason === 'resign' ? 'You resigned the round.' : `${names[winner]} connected four.`
-  return { tone: 'lose', emoji: '😤', title: reason === 'timeout' ? "Time's up" : 'You lose', subtitle: sub }
+  return { title: reason === 'timeout' ? 'Out of time' : 'You lose', subtitle: reason === 'timeout' ? 'Your 30 seconds ran out.' : reason === 'resign' ? 'You resigned the round.' : `${names[winner]} connected four.` }
 }
 
 export default function OnlineGame() {
@@ -72,23 +78,22 @@ export default function OnlineGame() {
   if (g.status === 'loading') return <PageSpinner />
   if (g.status !== 'ready' || !game) {
     const copyMap = {
-      notFound: ['Game not found', 'This game may have expired or been declined.'],
-      declined: ['Invite declined', 'Your friend declined this game. Try inviting someone else.'],
-      full: ['This game is full', g.error || 'Two players are already in this game, but you can still watch.'],
-      error: ["Couldn't load the game", g.error],
+      notFound: ['This game is gone', 'It may have expired or been declined. Start a new one.'],
+      declined: ['Your invite was declined', 'Try inviting another friend, or share a link instead.'],
+      full: ['Two players are already here', g.error || 'You can still watch the game.'],
+      error: ['The game didn’t load', g.error],
     }
     const [title, body] = copyMap[g.status] || copyMap.error
     return (
-      <Page size="sm">
+      <Page size="md">
         <EmptyState
-          icon={g.status === 'full' ? LuEye : LuSwords}
           title={title}
           action={
-            <div className="flex flex-wrap justify-center gap-2">
-              {g.status === 'full' && <Button to={`/watch/${id}`} icon={LuEye}>Watch game</Button>}
+            <>
+              {g.status === 'full' && <Button to={`/watch/${id}`}>Watch the game</Button>}
               {g.status === 'error' && <Button onClick={g.reload}>Try again</Button>}
-              <Button to="/online" variant="secondary">New game</Button>
-            </div>
+              <Button to="/online" variant="secondary">Start a new game</Button>
+            </>
           }
         >
           {body}
@@ -106,55 +111,51 @@ export default function OnlineGame() {
   const rematchByOpp = game.rematchBy && !rematchByMe
   const roundNo = game.score.p1 + game.score.p2 + (game.score.draws || 0) + (roundOver ? 0 : 1)
 
-  const card = (seat) => {
+  const side = (seat) => {
     const p = game[seat]
     const active = !!game.p2 && !roundOver && g.turn === seat
-    return (
-      <PlayerCard
-        player={seat}
-        name={p?.username || (game.invitedUser && seat === 'p2' ? game.invitedUser.username : null)}
-        avatarId={p?.avatar || game.invitedUser?.avatar}
-        score={game.score[seat]}
-        active={active}
-        isYou={g.seat === seat}
-        online={p ? !!g.online[idOf(p)] || g.seat === seat : undefined}
-        subtitle={p ? (active ? (g.seat === seat ? 'Your turn' : 'Thinking…') : `Level ${p.lvl ?? 1}`) : 'Invited'}
-        timeLeft={active ? g.timeLeft : null}
-        turnMs={g.turnMs}
-        align={seat === 'p2' ? 'right' : 'left'}
-      />
-    )
+    return {
+      player: seat,
+      name: p?.username || (seat === 'p2' ? game.invitedUser?.username : null),
+      avatarId: p?.avatar || (seat === 'p2' ? game.invitedUser?.avatar : undefined),
+      score: game.score[seat],
+      active,
+      isYou: g.seat === seat,
+      online: p ? !!g.online[idOf(p)] || g.seat === seat : undefined,
+      subtitle: !p ? 'Invited' : active ? (g.seat === seat ? 'Your turn' : 'Thinking') : `Level ${p.lvl ?? 1}`,
+      timeLeft: active ? g.timeLeft : null,
+      turnMs: g.turnMs,
+    }
   }
 
   const overlay = roundOver && (() => {
     const c = resultCopy(game, g.seat, names)
     return (
-      <RoundOverlay {...c} subtitle={`${c.subtitle} · Score ${game.score.p1}–${game.score.p2}`}>
+      <RoundOverlay winner={game.roundEnd.winner} title={c.title} subtitle={c.subtitle}>
         {decided ? (
           <>
-            <p className="text-sm font-semibold text-fg">Match decided: {game.score.p1 >= 2 ? names.p1 : names.p2} advances.</p>
-            <Button to={`/tournament/${game.tournamentId}`}>Back to tournament</Button>
+            <p className="font-bold">{game.score.p1 >= 2 ? names.p1 : names.p2} goes through to the next round.</p>
+            <Button to={`/tournament/${game.tournamentId}`}>Back to the bracket</Button>
           </>
         ) : rematchByOpp ? (
           <Button onClick={g.rematch} loading={g.busy}>Accept rematch</Button>
         ) : rematchByMe ? (
-          <Button disabled><Spinner className="size-4" /> Waiting for {opp?.username}…</Button>
+          <Button variant="secondary" disabled><Spinner className="size-4 border-2" /> Waiting for {opp?.username}</Button>
         ) : (
-          <Button onClick={g.rematch} loading={g.busy}>Play next round</Button>
+          <Button onClick={g.rematch} loading={g.busy}>Play another round</Button>
         )}
-        <Button to="/online" variant="ghost">Leave game</Button>
+        <Button to="/online" variant="ghost">Leave</Button>
       </RoundOverlay>
     )
   })()
 
   let status = null
-  if (!game.p2) status = null
-  else if (!roundOver) {
+  if (game.p2 && !roundOver) {
     status = g.myTurn ? (
-      <TurnStatus player={g.seat}>Your turn{typeof g.timeLeft === 'number' ? ` · ${Math.ceil(g.timeLeft)}s` : ''}</TurnStatus>
+      <TurnStatus player={g.seat}>Your turn</TurnStatus>
     ) : (
       <TurnStatus player={g.turn}>
-        {opp && !g.online[idOf(opp)] ? `${opp.username} is offline…` : `Waiting for ${names[g.turn]}…`}
+        {opp && !g.online[idOf(opp)] ? `${opp.username} has disconnected` : `${names[g.turn]} is thinking`}
       </TurnStatus>
     )
   }
@@ -162,12 +163,12 @@ export default function OnlineGame() {
   return (
     <>
       <GameLayout
-        title={game.tournamentId ? 'Tournament match' : 'Online match'}
-        badge={game.p2 && <Badge tone="primary">Round {roundNo}</Badge>}
+        title={game.tournamentId ? 'Tournament match' : 'Online game'}
+        badge={game.p2 && <Badge tone="board">Round {roundNo}</Badge>}
         back={game.tournamentId ? `/tournament/${game.tournamentId}` : '/online'}
         backLabel={game.tournamentId ? 'Bracket' : 'Lobby'}
-        actions={<IconButton icon={LuLink} label="Copy game link" onClick={() => copy(link, 'Game link')} />}
-        players={<>{card('p1')}{card('p2')}</>}
+        actions={<IconButton icon={Link2} label="Copy the game link" onClick={() => copy(link, 'Link')} />}
+        rail={game.p2 && <ScoreRail left={side('p1')} right={side('p2')} />}
         board={
           game.p2 ? (
             <Board
@@ -178,25 +179,25 @@ export default function OnlineGame() {
               interactive={g.myTurn && !g.busy}
               previewPlayer={g.seat}
               onPlay={g.play}
-              label={g.myTurn ? 'Board: your turn, choose a column' : 'Board'}
+              label={g.myTurn ? 'Board, your turn: choose a column' : 'Board'}
             />
           ) : (
-            <WaitingCard game={game} link={link} />
+            <WaitingTray game={game} link={link} />
           )
         }
         overlay={overlay}
         status={status}
         controls={
           game.p2 && !roundOver && g.seat && (
-            <Button variant="danger-ghost" size="sm" icon={LuFlag} onClick={() => setConfirmResign(true)}>
-              Resign round
+            <Button variant="danger-ghost" size="sm" icon={Flag} onClick={() => setConfirmResign(true)}>
+              Resign this round
             </Button>
           )
         }
         side={
           game.p2 && (
-            <Card className="flex h-full flex-col lg:max-h-[38rem]">
-              <CardHeader title="Chat" icon={LuMessageCircle} subtitle={opp ? `with ${opp.username}` : undefined} />
+            <Card className="flex flex-col lg:sticky lg:top-24 lg:max-h-[38rem]">
+              <CardHeader title="Chat" subtitle={opp ? `Only you and ${opp.username} can see this.` : undefined} />
               <GameChat messages={g.messages} me={me.username} onSend={g.sendChat} disabled={!opp} />
             </Card>
           )
@@ -206,12 +207,12 @@ export default function OnlineGame() {
         open={confirmResign}
         onClose={() => setConfirmResign(false)}
         title="Resign this round?"
-        description={`${opp?.username || 'Your opponent'} will get the point. The match continues with the next round.`}
+        description={`${opp?.username || 'Your opponent'} gets the point. You keep playing the next round.`}
         size="sm"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setConfirmResign(false)} data-autofocus>Keep playing</Button>
-            <Button variant="danger" onClick={() => { setConfirmResign(false); g.resign() }}>Resign</Button>
+            <Button variant="secondary" onClick={() => setConfirmResign(false)}>Keep playing</Button>
+            <Button variant="danger" onClick={() => { setConfirmResign(false); g.resign() }}>Resign round</Button>
           </>
         }
       />

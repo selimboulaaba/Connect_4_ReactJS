@@ -1,28 +1,27 @@
-import { cn } from './cn'
-import { normalizeAvatarId } from './avatarIds'
+import { cn } from '@/lib/utils'
+import { AVATAR_COLORS, normalizeAvatarId } from './avatarIds'
 
-function palette(avatarId) {
+const SIZES = { xs: 'size-6 text-[11px]', sm: 'size-8 text-sm', md: 'size-11 text-base', lg: 'size-14 text-xl', xl: 'size-24 text-4xl' }
+const DOT = { xs: 'size-2.5', sm: 'size-3', md: 'size-3.5', lg: 'size-4', xl: 'size-5' }
+
+const SEAT = { p1: ['hsl(var(--red))', '#fff'], p2: ['hsl(var(--yellow))', 'hsl(var(--on-yellow))'] }
+
+/** Players are checkers: a coloured disc with their initial. `seat` paints it in that player's disc colour. */
+export function Avatar({ avatarId, name, size = 'md', online, seat, className }) {
   const n = parseInt(normalizeAvatarId(avatarId).slice(7), 10)
-  const hue = ((n - 1) * 30 + 200) % 360
-  return `linear-gradient(140deg, hsl(${hue} 80% 62%), hsl(${(hue + 40) % 360} 70% 42%))`
-}
-
-const SIZES = { xs: 'size-6 text-[10px]', sm: 'size-8 text-xs', md: 'size-10 text-sm', lg: 'size-14 text-lg', xl: 'size-20 text-2xl' }
-const DOT = { xs: 'size-2', sm: 'size-2.5', md: 'size-3', lg: 'size-3.5', xl: 'size-4' }
-
-export function Avatar({ avatarId, name, size = 'md', online, className }) {
+  const [fill, text] = seat ? SEAT[seat] : AVATAR_COLORS[n - 1]
   return (
     <span className={cn('relative inline-flex shrink-0', className)}>
       <span
-        className={cn('inline-flex items-center justify-center rounded-full font-display font-bold uppercase text-white shadow-sm ring-2 ring-surface', SIZES[size])}
-        style={{ background: palette(avatarId) }}
+        className={cn('disc flex items-center justify-center border-2 border-ink font-display leading-none', SIZES[size])}
+        style={{ background: fill, color: text }}
         aria-hidden
       >
-        {(name || '?').slice(0, 1)}
+        <span className="relative z-[1]">{(name || '?').slice(0, 1).toUpperCase()}</span>
       </span>
       {online !== undefined && (
         <span
-          className={cn('absolute bottom-0 right-0 rounded-full ring-2 ring-surface', DOT[size], online ? 'bg-success' : 'bg-subtle')}
+          className={cn('absolute -bottom-0.5 -right-0.5 rounded-full border-2 border-ink', DOT[size], online ? 'bg-green' : 'bg-muted')}
           title={online ? 'Online' : 'Offline'}
         />
       )}
