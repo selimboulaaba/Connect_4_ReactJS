@@ -66,6 +66,26 @@
     outline: 3px solid hsl(var(--ring));
     outline-offset: 2px;
   }
+  /* Anything you can click gets the hand cursor, including Radix items built from divs. */
+  a[href],
+  summary,
+  select,
+  [role='button'],
+  [role='link'],
+  [role='menuitem'],
+  [role='menuitemradio'],
+  [role='menuitemcheckbox'],
+  [role='option'],
+  [role='tab'],
+  [role='radio'],
+  [role='switch'],
+  [role='checkbox'] {
+    cursor: pointer;
+  }
+  [aria-disabled='true'],
+  [data-disabled] {
+    cursor: not-allowed;
+  }
   ::selection {
     background: hsl(var(--yellow) / 0.6);
     color: hsl(var(--on-yellow));
