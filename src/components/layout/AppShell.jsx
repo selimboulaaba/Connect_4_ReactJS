@@ -6,6 +6,7 @@ import {
   DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, Button, IconButton } from '@/ui'
+import { LogoMark } from '@/components/LogoMark'
 import { cn } from '@/lib/utils'
 import { useMuted, useTheme } from '@/lib/preferences'
 import { useSocket } from '@/lib/socketContext'
@@ -14,12 +15,7 @@ import { selectUser, signedOut } from '@/store/userSlice'
 export function Logo({ className, onBoard = true }) {
   return (
     <Link to="/" className={cn('flex items-center gap-2.5', className)} aria-label="Connect 4, home">
-      <span className="grid size-9 grid-cols-2 gap-[3px] rounded-[0.6rem] border-[2.5px] border-ink bg-board p-[4px]" aria-hidden>
-        <span className="board-hole rounded-full" />
-        <span className="disc disc-yellow" />
-        <span className="disc disc-red" />
-        <span className="disc disc-red" />
-      </span>
+      <LogoMark className="size-10 shrink-0" />
       <span className={cn('whitespace-nowrap font-display text-[1.35rem] leading-none', onBoard ? 'text-on-board' : 'text-foreground')}>Connect 4</span>
     </Link>
   )

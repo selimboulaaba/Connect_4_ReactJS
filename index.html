@@ -3,18 +3,61 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Connect 4: Play online with friends</title>
-    <meta name="description" content="Play Connect 4 online with friends, against the computer, or on one device. Daily puzzles, tournaments and a leaderboard." />
+    <title>Connect 4 Online: Play Four in a Row with Friends</title>
+    <meta name="description" content="Play Connect 4 online for free. Challenge friends in real time, play the computer on three levels, pass one phone around, solve the daily puzzle and climb the leaderboard." />
+    <link rel="canonical" href="https://connect4.skouza.xyz/" />
     <meta name="theme-color" content="#1F4FD8" />
+    <meta name="color-scheme" content="light dark" />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Link previews (Facebook, WhatsApp, Discord, LinkedIn, X) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Connect 4" />
+    <meta property="og:title" content="Connect 4 Online: Play Four in a Row with Friends" />
+    <meta property="og:description" content="Challenge friends in real time, play the computer, or solve the daily puzzle. Free, in your browser." />
+    <meta property="og:url" content="https://connect4.skouza.xyz/" />
+    <meta property="og:image" content="https://connect4.skouza.xyz/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A Connect 4 board mid-game next to the words: Drop four in a row." />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Connect 4 Online: Play Four in a Row with Friends" />
+    <meta name="twitter:description" content="Challenge friends in real time, play the computer, or solve the daily puzzle. Free, in your browser." />
+    <meta name="twitter:image" content="https://connect4.skouza.xyz/og-image.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": ["VideoGame", "WebApplication"],
+        "name": "Connect 4",
+        "alternateName": ["Connect Four", "Four in a Row"],
+        "url": "https://connect4.skouza.xyz/",
+        "image": "https://connect4.skouza.xyz/og-image.png",
+        "description": "Play Connect 4 online with friends in real time, against the computer, or on one device. Daily puzzles, tournaments and a leaderboard.",
+        "applicationCategory": "GameApplication",
+        "genre": ["Board game", "Strategy"],
+        "gamePlatform": "Web browser",
+        "operatingSystem": "Any",
+        "playMode": ["SinglePlayer", "MultiPlayer"],
+        "numberOfPlayers": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2 },
+        "inLanguage": "en",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Titan+One&display=swap" rel="stylesheet" />
     <script>
       // Theme: "system" (default) follows the device; "light"/"dark" are manual overrides.
+      document.documentElement.classList.add('js')
       ;(function () {
-        var pref = 'system'
-        try { pref = localStorage.getItem('theme') || 'system' } catch (e) {}
         var mq = window.matchMedia('(prefers-color-scheme: dark)')
         var apply = function () {
           var p = 'system'
@@ -26,9 +69,23 @@
         window.__applyTheme = apply
       })()
     </script>
+    <style>.js #seo-fallback { display: none; }</style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Replaced by the app on load; read by crawlers and visitors without JavaScript. -->
+      <main id="seo-fallback" style="max-width:40rem;margin:4rem auto;padding:0 1rem;font-family:system-ui,sans-serif;color:#0E2A7A">
+        <h1>Connect 4 online: drop four in a row</h1>
+        <p>Play Connect 4 (also called Connect Four or Four in a Row) for free in your browser. Challenge a friend online in real time, play the computer on easy, medium or hard, or pass one phone around. Solve a new puzzle every day, join four-player tournaments and climb the leaderboard.</p>
+        <ul>
+          <li><a href="/ai">Play the computer</a></li>
+          <li><a href="/local">Pass and play on one device</a></li>
+          <li><a href="/daily">Daily puzzle</a></li>
+          <li><a href="/signup">Create a free account</a> to play friends online</li>
+        </ul>
+        <noscript><p>Connect 4 needs JavaScript to run. Please turn it on in your browser.</p></noscript>
+      </main>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

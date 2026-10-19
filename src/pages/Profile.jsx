@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, Trophy, Swords, Crown, Target, Shield, Zap } from 'lucide-react'
+import { LogOut, Shuffle } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { errorMessage, gamesApi, usersApi } from '@/lib/api'
-import { ACHIEVEMENTS, levelProgress } from '@/game/level'
+import { levelProgress } from '@/game/level'
+import { ACHIEVEMENTS, ACHIEVEMENT_GROUPS } from '@/game/achievements'
+import { AVATAR_STYLES, parseAvatar, randomSeed } from '@/lib/avatars'
 import { selectUser, signedIn, signedOut } from '@/store/userSlice'
-import { AVATAR_IDS, Alert, Avatar, Badge, Button, Card, CardHeader, EmptyState, Input, Page, Skeleton, XpSlots, toast } from '@/ui'
+import { Alert, Avatar, Badge, Button, Card, CardHeader, EmptyState, Input, Page, Skeleton, XpSlots, toast } from '@/ui'
 import { cn } from '@/lib/utils'
 
-const ICONS = { first_win: Trophy, ten_wins: Swords, fifty_wins: Crown, giant_slayer: Target, shutout: Shield, speedrun: Zap }
 const REASON = { timeout: 'on time', resign: 'by resignation' }
 
 function Scoreline({ stats = {} }) {
@@ -70,6 +71,63 @@ function History() {
   )
 }
 
+const OPTIONS = 12
+const newSeeds = () => Array.from({ length: OPTIONS }, randomSeed)
+
+/** Pick a style, browse generated faces, shuffle for more. Saving happens on click. */
+function AvatarPicker({ current, name, saving, onPick }) {
+  const active = parseAvatar(current, name)
+  const [style, setStyle] = useState(active.style)
+  const [seeds, setSeeds] = useState(newSeeds)
+  // Keep the saved avatar visible as the first option of its own style.
+  const options = useMemo(() => {
+    const list = seeds.map((seed) => `${style}:${seed}`)
+    return style === active.style && !list.includes(current) ? [current, ...list.slice(1)] : list
+  }, [seeds, style, active.style, current])
+
+  return (
+    <Card>
+      <CardHeader
+        title="Your avatar"
+        subtitle="Generated just for you. Pick one, or shuffle for more."
+        action={<Button size="sm" variant="secondary" icon={Shuffle} onClick={() => setSeeds(newSeeds())}>Shuffle</Button>}
+      />
+      <div className="mb-4 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Avatar style">
+        {AVATAR_STYLES.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            role="radio"
+            aria-checked={style === s.id}
+            onClick={() => { setStyle(s.id); setSeeds(newSeeds()) }}
+            className={cn('rounded-full border-2 px-3 py-1 text-sm font-bold transition-colors', style === s.id ? 'border-ink bg-board text-on-board' : 'border-ink/20 text-muted-foreground hover:border-ink hover:text-foreground')}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+      <div className="grid grid-cols-4 gap-3 sm:grid-cols-6" role="radiogroup" aria-label="Avatar">
+        {options.map((value, i) => {
+          const selected = value === current
+          return (
+            <button
+              key={value + i}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              aria-label={selected ? 'Current avatar' : `Avatar option ${i + 1}`}
+              onClick={() => onPick(value)}
+              className={cn('flex aspect-square items-center justify-center rounded-full ring-offset-2 ring-offset-card transition', selected ? 'ring-[3px] ring-board' : 'hover:ring-2 hover:ring-ink/30', saving === value && 'animate-pulse')}
+            >
+              <Avatar avatarId={value} name={name} size="lg" />
+            </button>
+          )
+        })}
+      </div>
+    </Card>
+  )
+}
+
 function Settings() {
   const me = useSelector(selectUser)
   const dispatch = useDispatch()
@@ -117,27 +175,7 @@ function Settings() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
-      <Card>
-        <CardHeader title="Your disc" subtitle="This is how other players see you." />
-        <div className="grid grid-cols-6 gap-3" role="radiogroup" aria-label="Avatar colour">
-          {AVATAR_IDS.map((id, i) => {
-            const active = (me.avatar || 'avatar_1') === id
-            return (
-              <button
-                key={id}
-                type="button"
-                role="radio"
-                aria-checked={active}
-                aria-label={`Colour ${i + 1}`}
-                onClick={() => pickAvatar(id)}
-                className={cn('flex aspect-square items-center justify-center rounded-full ring-offset-2 ring-offset-card transition', active ? 'ring-[3px] ring-board' : 'hover:ring-2 hover:ring-ink/30', savingAvatar === id && 'animate-pulse')}
-              >
-                <Avatar avatarId={id} name={me.username} size="md" />
-              </button>
-            )
-          })}
-        </div>
-      </Card>
+      <AvatarPicker current={me.avatar} name={me.username} saving={savingAvatar} onPick={pickAvatar} />
       <Card>
         <CardHeader title="Account" />
         <form onSubmit={save} className="space-y-4" noValidate>
@@ -182,28 +220,34 @@ export default function Profile() {
 
         <TabsContent value="overview" className="space-y-8">
           <Scoreline stats={me.stats} />
-          <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
-            <Card>
-              <CardHeader title="Achievements" subtitle={`${unlocked.size} of ${ACHIEVEMENTS.length} earned`} />
-              <ul className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3">
-                {ACHIEVEMENTS.map((a) => {
-                  const on = unlocked.has(a.id)
-                  const Icon = ICONS[a.id]
-                  return (
-                    <li key={a.id} className="flex flex-col items-start">
-                      <span className={cn('flex size-12 items-center justify-center rounded-full border-3 border-ink', on ? 'disc disc-yellow text-[hsl(var(--on-yellow))]' : 'board-hole text-muted-foreground/60')}>
-                        <Icon className="relative z-[1] size-5" aria-hidden />
-                      </span>
-                      <p className={cn('mt-2 font-extrabold', !on && 'text-muted-foreground')}>{a.label}</p>
-                      <p className="text-sm text-muted-foreground">{a.desc}</p>
-                      <span className="sr-only">{on ? 'Earned' : 'Not earned yet'}</span>
-                    </li>
-                  )
-                })}
-              </ul>
-            </Card>
-            <History />
-          </div>
+          <Card>
+            <CardHeader title="Achievements" subtitle={`${unlocked.size} of ${ACHIEVEMENTS.length} earned`} />
+            <div className="grid gap-x-8 gap-y-8 sm:grid-cols-2 xl:grid-cols-4">
+              {ACHIEVEMENT_GROUPS.map((group) => (
+                <section key={group.title}>
+                  <h3 className="mb-3 font-extrabold text-muted-foreground">{group.title}</h3>
+                  <ul className="space-y-3">
+                    {group.items.map((a) => {
+                      const on = unlocked.has(a.id)
+                      return (
+                        <li key={a.id} className="flex items-center gap-3">
+                          <span className={cn('flex size-11 shrink-0 items-center justify-center rounded-full border-3 border-ink', on ? 'disc disc-yellow text-[hsl(var(--on-yellow))]' : 'board-hole text-muted-foreground/60')}>
+                            <a.icon className="relative z-[1] size-5" aria-hidden />
+                          </span>
+                          <span className="min-w-0">
+                            <span className={cn('block font-extrabold leading-tight', !on && 'text-muted-foreground')}>{a.label}</span>
+                            <span className="block text-sm text-muted-foreground">{a.desc}</span>
+                          </span>
+                          <span className="sr-only">{on ? 'Earned' : 'Not earned yet'}</span>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </section>
+              ))}
+            </div>
+          </Card>
+          <History />
         </TabsContent>
 
         <TabsContent value="settings">

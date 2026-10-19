@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+# Private, per-user pages have nothing useful for search engines.
+Disallow: /profile
+Disallow: /friends
+Disallow: /online/
+Disallow: /watch/
+Disallow: /tournament/
+
+Sitemap: https://connect4.skouza.xyz/sitemap.xml

@@ -73,7 +73,7 @@ export function GlobalEvents() {
   useSocketEvent('profileUpdate', (patch) => dispatch(profilePatched(patch)))
 
   useSocketEvent('achievementsUnlocked', ({ achievements }) => {
-    achievements.forEach((a) => toast.success(a.desc, { title: `${a.icon} Achievement unlocked: ${a.label}`, duration: 6000 }))
+    achievements.forEach((a) => toast.success(a.desc, { title: `Achievement unlocked: ${a.label}`, duration: 6000 }))
   })
 
   return null

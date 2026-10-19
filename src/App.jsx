@@ -5,6 +5,7 @@ import { AuthGuard, GuestGuard } from './components/Guards'
 import { GlobalEvents } from './components/GlobalEvents'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { SocketProvider } from './lib/socket'
+import { applySeo } from './lib/seo'
 import { PageSpinner, Toaster } from './ui'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import Home from './pages/Home'
@@ -25,20 +26,6 @@ const DailyChallenge = lazy(() => import('./pages/DailyChallenge'))
 const TournamentLobby = lazy(() => import('./pages/TournamentLobby'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
-const TITLES = {
-  '/': 'Play',
-  '/local': 'Local game',
-  '/ai': 'Play vs CPU',
-  '/online': 'Online',
-  '/friends': 'Friends',
-  '/profile': 'Profile',
-  '/leaderboard': 'Leaderboard',
-  '/watch': 'Watch',
-  '/daily': 'Daily puzzle',
-  '/tournament': 'Tournament',
-  '/signin': 'Sign in',
-  '/signup': 'Create account',
-}
 
 function RoutedBoundary({ children }) {
   const { pathname } = useLocation()
@@ -49,8 +36,7 @@ function RouteEffects() {
   const { pathname } = useLocation()
   useEffect(() => {
     window.scrollTo(0, 0)
-    const base = '/' + (pathname.split('/')[1] || '')
-    document.title = `${TITLES[base] || 'Connect 4'} · Connect 4`
+    applySeo(pathname)
   }, [pathname])
   return null
 }
